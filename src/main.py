@@ -1,10 +1,11 @@
-import random
-import datetime
-import time
 import argparse
+import datetime
+import random
+import time
 from collections import defaultdict
 
-from pubpeer import download_latest_from_pubpeer
+from bots.pubpeer import download_latest_from_pubpeer
+from bots.inteng import download_interesting_engineering
 from connect import Connection
 
 
@@ -21,7 +22,7 @@ def wait_for_place(conn):
             return m['value']
 
 
-def run(conn, ntitles, waitleave, waitdl):
+def run(conn, ntitles, waitleave, waitdl, download):
     conn.recv_message()  # welcome
     conn.look()
     t0 = datetime.datetime.now() - datetime.timedelta(minutes=1 + waitdl)
@@ -32,7 +33,7 @@ def run(conn, ntitles, waitleave, waitdl):
         t1 = datetime.datetime.now()
         if t1 - t0 > datetime.timedelta(minutes=waitdl):
             t0 = t1
-            pubs = download_latest_from_pubpeer()
+            pubs = download()
         unseen_pubs = [p for p in pubs if p['id'] not in seen[place['pid']]]
         for pub in unseen_pubs[:min(ntitles, len(unseen_pubs))]:
             conn.say(pub['title'].strip())
@@ -51,19 +52,19 @@ def parse_args():
         help='server hostname'
     )
     parser.add_argument(
-        '--port',
+        'port',
         metavar='PORT',
         type=int,
         help='server port'
     )
     parser.add_argument(
-        '--botname',
+        'botname',
         metavar='BOTNAME',
         help='Name of bot character',
-        default='pubpeerbot'
+        choices=('pubpeerbot', 'intengbot')
     )
     parser.add_argument(
-        '--botpw',
+        'botpw',
         metavar='BOTPW',
         help='Password of bot character'
     )
@@ -78,22 +79,26 @@ def parse_args():
         '--waitleave',
         metavar='WAITLEAVE',
         type=int,
-        default=60,
+        default=600,
         help='Time (seconds) bot waits before leaving a room'
     )
     parser.add_argument(
         '--waitdl',
         metavar='WAITDL',
         type=int,
-        default=20,
-        help='Time (minutes) bot waits before redownloading latest from PubPeer'
+        default=1200,
+        help='Time (minutes) bot waits before redownloading'
     )
     return parser.parse_args()
 
 
 def main(host, port, botname, botpw, ntitles, waitleave, waitdl):
     conn = connect(host, port, botname, botpw)
-    run(conn, ntitles, waitleave, waitdl)
+    if botname == 'pubpeerbot':
+        download = download_latest_from_pubpeer
+    else:
+        download = download_interesting_engineering
+    run(conn, ntitles, waitleave, waitdl, download)
 
 
 if __name__ == '__main__':
