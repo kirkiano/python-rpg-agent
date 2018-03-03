@@ -10,4 +10,4 @@ def download_interesting_engineering(debug=False):
     tags = []
     for cls in ('main-post-title', 'main-video-title', 'featured-image'):
         tags += soup.find_all('a', {'class': cls})
-    return [dict(id=uuid4(), title=t['href']) for t in tags]
+    return [dict(id=uuid4(), title=t['title']) for t in tags]

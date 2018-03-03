@@ -6,6 +6,8 @@ from collections import defaultdict
 
 from bots.pubpeer import download_latest_from_pubpeer
 from bots.inteng import download_interesting_engineering
+from bots.latin_quotes import download_latin_quotes
+from bots.retraction_watch import download_retraction_watch
 from connect import Connection
 
 
@@ -61,7 +63,8 @@ def parse_args():
         'botname',
         metavar='BOTNAME',
         help='Name of bot character',
-        choices=('pubpeerbot', 'intengbot')
+        choices=('pubpeerbot', 'intengbot', 'latinquotesbot',
+                 'retractionwatchbot')
     )
     parser.add_argument(
         'botpw',
@@ -96,6 +99,10 @@ def main(host, port, botname, botpw, ntitles, waitleave, waitdl):
     conn = connect(host, port, botname, botpw)
     if botname == 'pubpeerbot':
         download = download_latest_from_pubpeer
+    elif botname == 'latinquotesbot':
+        download = download_latin_quotes
+    elif botname == 'retractionwatchbot':
+        download = download_retraction_watch
     else:
         download = download_interesting_engineering
     run(conn, ntitles, waitleave, waitdl, download)
