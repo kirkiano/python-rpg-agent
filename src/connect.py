@@ -37,9 +37,9 @@ class Connection(object):
     def look(self):
         self.send_message({'type': 'whereami'})
 
-    def take_exit(self, prid):
+    def take_exit(self, eid):
         self.send_message({'type': 'exit',
-                           'prid': prid})
+                           'eid':  eid})
 
     def say(self, s):
         self.send_message({'type': 'say',

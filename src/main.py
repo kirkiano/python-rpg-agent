@@ -41,7 +41,7 @@ def run(conn, ntitles, waitleave, waitdl, download):
             conn.say(pub['title'].strip())
             seen[place['pid']].add(pub['id'])
         time.sleep(waitleave)
-        chosen_exit = random.choice([e['prtid'] for e in place['exits']])
+        chosen_exit = random.choice([e['eid'] for e in place['exits']])
         conn.take_exit(chosen_exit)
 
 
