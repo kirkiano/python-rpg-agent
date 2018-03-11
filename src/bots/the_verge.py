@@ -4,9 +4,9 @@ from uuid import uuid4
 from util.web import get_web_page
 
 
-def download_retraction_watch(debug=False):
-    r = get_web_page('https://retractionwatch.com/', debug=debug)
+def download_the_verge(debug=False):
+    r = get_web_page('https://www.theverge.com/', debug=debug)
     soup = BeautifulSoup(r, 'html.parser')
-    tags = soup.find_all(class_='entry-title')
+    tags = soup.find_all('h2', {'class': 'c-entry-box--compact__title'})
     return [dict(id=uuid4(), title=t.contents[0].text) for t in tags
             if hasattr(t.contents[0], 'text')]

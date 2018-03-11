@@ -8,6 +8,7 @@ from bots.pubpeer import download_latest_from_pubpeer
 from bots.inteng import download_interesting_engineering
 from bots.latin_quotes import download_latin_quotes
 from bots.retraction_watch import download_retraction_watch
+from bots.the_verge import download_the_verge
 from connect import Connection
 
 
@@ -46,7 +47,7 @@ def run(conn, ntitles, waitleave, waitdl, download):
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='RPG bot for PubPeer')
+    parser = argparse.ArgumentParser(description='RPG bot')
     parser.add_argument(
         '--host',
         metavar='HOST',
@@ -64,7 +65,7 @@ def parse_args():
         metavar='BOTNAME',
         help='Name of bot character',
         choices=('pubpeerbot', 'intengbot', 'latinquotesbot',
-                 'retractionwatchbot')
+                 'retractionwatchbot', 'vergebot')
     )
     parser.add_argument(
         'botpw',
@@ -82,7 +83,7 @@ def parse_args():
         '--waitleave',
         metavar='WAITLEAVE',
         type=int,
-        default=600,
+        default=1200,
         help='Time (seconds) bot waits before leaving a room'
     )
     parser.add_argument(
@@ -103,6 +104,8 @@ def main(host, port, botname, botpw, ntitles, waitleave, waitdl):
         download = download_latin_quotes
     elif botname == 'retractionwatchbot':
         download = download_retraction_watch
+    elif botname == 'vergebot':
+        download = download_the_verge
     else:
         download = download_interesting_engineering
     run(conn, ntitles, waitleave, waitdl, download)
