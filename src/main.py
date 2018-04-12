@@ -1,15 +1,18 @@
+import sys
 import argparse
 import datetime
 import random
 import time
 from collections import defaultdict
 
-from bots.pubpeer import download_latest_from_pubpeer
-from bots.inteng import download_interesting_engineering
-from bots.latin_quotes import download_latin_quotes
-from bots.retraction_watch import download_retraction_watch
-from bots.the_verge import download_the_verge
 from connect import Connection
+from bots.pubpeer import scrape_pubpeer
+from bots.inteng import scrape_inteng
+from bots.retraction_watch import scrape_retwatch
+from bots.verge import scrape_verge
+from bots.ajp import scrape_ajp
+from bots.aps import *
+from bots.science import scrape_sciencemag
 
 
 def connect(host, port, user, pw):
@@ -25,7 +28,7 @@ def wait_for_place(conn):
             return m['value']
 
 
-def run(conn, ntitles, waitleave, waitdl, download):
+def run(conn, ntitles, waitleave, waitdl, download, do_shuffle=True):
     conn.recv_message()  # welcome
     conn.look()
     t0 = datetime.datetime.now() - datetime.timedelta(minutes=1 + waitdl)
@@ -38,6 +41,8 @@ def run(conn, ntitles, waitleave, waitdl, download):
             t0 = t1
             pubs = download()
         unseen_pubs = [p for p in pubs if p['id'] not in seen[place['pid']]]
+        if do_shuffle:
+            random.shuffle(unseen_pubs)
         for pub in unseen_pubs[:min(ntitles, len(unseen_pubs))]:
             conn.say(pub['title'].strip())
             seen[place['pid']].add(pub['id'])
@@ -63,9 +68,10 @@ def parse_args():
     parser.add_argument(
         'botname',
         metavar='BOTNAME',
-        help='Name of bot character',
-        choices=('pubpeerbot', 'intengbot', 'latinquotesbot',
-                 'retractionwatchbot', 'vergebot')
+        help='Name of bot character (without the "bot" suffix)',
+        choices=('pubpeer', 'inteng', 'verge', 'retwatch', 'sciencemag',
+                 'ajp', 'prd', 'prl', 'prx', 'apsnews', 'apsphysics',
+                 'physicstoday')
     )
     parser.add_argument(
         'botpw',
@@ -98,16 +104,7 @@ def parse_args():
 
 def main(host, port, botname, botpw, ntitles, waitleave, waitdl):
     conn = connect(host, port, botname, botpw)
-    if botname == 'pubpeerbot':
-        download = download_latest_from_pubpeer
-    elif botname == 'latinquotesbot':
-        download = download_latin_quotes
-    elif botname == 'retractionwatchbot':
-        download = download_retraction_watch
-    elif botname == 'vergebot':
-        download = download_the_verge
-    else:
-        download = download_interesting_engineering
+    download = getattr(sys.modules[__name__], 'scrape_' + botname)
     run(conn, ntitles, waitleave, waitdl, download)
 
 

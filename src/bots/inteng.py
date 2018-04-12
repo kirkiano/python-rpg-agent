@@ -1,10 +1,11 @@
-from bs4 import BeautifulSoup
 from uuid import uuid4
 
-from util.web import get_web_page
+from bs4 import BeautifulSoup
+
+from web import get_web_page
 
 
-def download_interesting_engineering(debug=False):
+def scrape_inteng(debug=False):
     r = get_web_page('https://interestingengineering.com', debug=debug)
     soup = BeautifulSoup(r, 'html.parser')
     tags = []
@@ -14,5 +15,4 @@ def download_interesting_engineering(debug=False):
             ('featured-image', lambda t: t['title'])):
         tags += [dict(id=uuid4(), title=get_title(t))
                  for t in soup.find_all('a', {'class': cls})]
-
     return tags

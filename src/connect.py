@@ -4,6 +4,10 @@ import json
 
 class Connection(object):
 
+    class CannotAuthenticate(Exception):
+        def __init__(self):
+            self.msg = 'Cannot authenticate with given credentials'
+
     def __init__(self, host, port):
         self.host = host
         self.port = port
@@ -33,14 +37,16 @@ class Connection(object):
             'type': 'login',
             'creds': {'user': user, 'pass': pw}
         })
+        resp = self.recv_message()
+        if (('type' not in resp) or ('value' not in resp) or
+                (resp['type'] != 'auth') or (resp['value'] != 'Welcome')):
+            raise Connection.CannotAuthenticate()
 
     def look(self):
         self.send_message({'type': 'whereami'})
 
     def take_exit(self, eid):
-        self.send_message({'type': 'exit',
-                           'eid':  eid})
+        self.send_message({'type': 'exit', 'eid':  eid})
 
     def say(self, s):
-        self.send_message({'type': 'say',
-                           'value': s})
+        self.send_message({'type': 'say', 'value': s})

@@ -1,10 +1,11 @@
-from bs4 import BeautifulSoup
 from uuid import uuid4
 
-from util.web import get_web_page
+from bs4 import BeautifulSoup
+
+from web import get_web_page
 
 
-def download_the_verge(debug=False):
+def scrape_verge(debug=False):
     r = get_web_page('https://www.theverge.com/', debug=debug)
     soup = BeautifulSoup(r, 'html.parser')
     tags = soup.find_all('h2', {'class': 'c-entry-box--compact__title'})
