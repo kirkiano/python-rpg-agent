@@ -2,53 +2,18 @@ import sys
 import argparse
 import datetime
 import random
-import time
 from collections import defaultdict
+import asyncio
+from traceback import print_exc
 
 from connect import Connection
+from bots.aps import *
 from bots.pubpeer import scrape_pubpeer
 from bots.inteng import scrape_inteng
 from bots.retraction_watch import scrape_retwatch
 from bots.verge import scrape_verge
 from bots.ajp import scrape_ajp
-from bots.aps import *
 from bots.science import scrape_sciencemag
-
-
-def connect(host, port, user, pw):
-    conn = Connection(host, int(port))
-    conn.authenticate(user, pw)
-    return conn
-
-
-def wait_for_place(conn):
-    while True:
-        m = conn.recv_message()
-        if m['type'] == 'place':
-            return m['value']
-
-
-def run(conn, ntitles, waitleave, waitdl, download, do_shuffle=True):
-    conn.recv_message()  # welcome
-    conn.look()
-    t0 = datetime.datetime.now() - datetime.timedelta(minutes=1 + waitdl)
-    pubs = []
-    seen = defaultdict(set)
-    while True:
-        place = wait_for_place(conn)
-        t1 = datetime.datetime.now()
-        if t1 - t0 > datetime.timedelta(minutes=waitdl):
-            t0 = t1
-            pubs = download()
-        unseen_pubs = [p for p in pubs if p['id'] not in seen[place['pid']]]
-        if do_shuffle:
-            random.shuffle(unseen_pubs)
-        for pub in unseen_pubs[:min(ntitles, len(unseen_pubs))]:
-            conn.say(pub['title'].strip())
-            seen[place['pid']].add(pub['id'])
-        time.sleep(waitleave)
-        chosen_exit = random.choice([e['eid'] for e in place['exits']])
-        conn.take_exit(chosen_exit)
 
 
 def parse_args():
@@ -66,50 +31,81 @@ def parse_args():
         help='server port'
     )
     parser.add_argument(
-        'botname',
-        metavar='BOTNAME',
-        help='Name of bot character (without the "bot" suffix)',
-        choices=('pubpeer', 'inteng', 'verge', 'retwatch', 'sciencemag',
-                 'ajp', 'prd', 'prl', 'prx', 'apsnews', 'apsphysics',
-                 'physicstoday')
-    )
-    parser.add_argument(
-        'botpw',
-        metavar='BOTPW',
-        help='Password of bot character'
-    )
-    parser.add_argument(
         '--ntitles',
         metavar='NTITLES',
         type=int,
         default=1,
-        help='Number of PubBeer titles to announce'
+        help='Number of PubPeer titles to announce'
     )
     parser.add_argument(
         '--waitleave',
         metavar='WAITLEAVE',
         type=int,
         default=1200,
-        help='Time (seconds) bot waits before leaving a room'
+        help='Maximum time (seconds) bot waits before leaving a room'
     )
     parser.add_argument(
         '--waitdl',
         metavar='WAITDL',
         type=int,
         default=1200,
-        help='Time (minutes) bot waits before redownloading'
+        help='Maxmum time (minutes) bot waits before redownloading'
     )
     return parser.parse_args()
 
 
-def main(host, port, botname, botpw, ntitles, waitleave, waitdl):
-    conn = connect(host, port, botname, botpw)
-    download = getattr(sys.modules[__name__], 'scrape_' + botname)
-    run(conn, ntitles, waitleave, waitdl, download)
+async def run(host, port, botname, download, ntitles,
+              waitleave, waitdl, ioloop, do_shuffle=True):
+    conn = await Connection.login(host, port, botname, botname, ioloop)
+    await conn.recv_message()  # welcome
+    await conn.look()
+    t0 = datetime.datetime.now() - datetime.timedelta(minutes=1 + waitdl)
+    pubs = []
+    seen = defaultdict(set)
+    while True:
+        place = await conn.wait_for_place()
+        t1 = datetime.datetime.now()
+        wait_to_download = random.uniform(0, waitdl)
+        if t1 - t0 > datetime.timedelta(minutes=wait_to_download):
+            t0 = t1
+            pubs = await download()
+        unseen_pubs = [p for p in pubs if p['id'] not in seen[place['pid']]]
+        if do_shuffle:
+            random.shuffle(unseen_pubs)
+        for pub in unseen_pubs[:min(ntitles, len(unseen_pubs))]:
+            await conn.say(pub['title'].strip())
+            seen[place['pid']].add(pub['id'])
+        wait_to_move = random.uniform(0, waitleave)
+        await asyncio.sleep(wait_to_move)
+        chosen_exit = random.choice([e['eid'] for e in place['exits']])
+        await conn.take_exit(chosen_exit)
+
+
+async def run_safely(*args, **kwargs):
+    try:
+        await run(*args, **kwargs)
+    except Exception:
+        print()
+        print(f"{kwargs['botname']} crashed:")
+        print_exc()
+
+
+def main(host, port, ntitles, waitleave, waitdl):
+    bot_names = ('ajp', 'apsnews', 'apsphysics', 'inteng', 'physicstoday',
+                 'prd', 'prl', 'prx', 'pubpeer', 'retwatch', 'sciencemag',
+                 'verge')
+    downloads = [getattr(sys.modules[__name__], 'scrape_' + bot)
+                 for bot in bot_names]
+    ioloop = asyncio.get_event_loop()
+    runnit = partial(run_safely, host=host, port=port, ntitles=ntitles,
+                     waitleave=waitleave, waitdl=waitdl, ioloop=ioloop)
+    tasks = [ioloop.create_task(runnit(botname=botname, download=dl))
+             for botname, dl in zip(bot_names, downloads)]
+    ioloop.run_until_complete(asyncio.wait(tasks))
+    ioloop.close()
 
 
 if __name__ == '__main__':
-    args = parse_args()
-    main(args.host, args.port,
-         args.botname, args.botpw,
-         args.ntitles, args.waitleave, args.waitdl)
+    clargs = parse_args()
+    main(clargs.host, clargs.port, clargs.ntitles,
+         clargs.waitleave, clargs.waitdl)

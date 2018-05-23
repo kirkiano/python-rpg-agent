@@ -1,52 +1,76 @@
-import socket
+import asyncio
 import json
 
 
 class Connection(object):
 
+    @staticmethod
+    async def login(host, port, user, pw, ioloop):
+        conn = Connection(host, int(port), ioloop)
+        await conn.open()
+        await conn.authenticate(user, pw)
+        return conn
+
     class CannotAuthenticate(Exception):
         def __init__(self):
             self.msg = 'Cannot authenticate with given credentials'
 
-    def __init__(self, host, port):
+    def __init__(self, host, port, ioloop):
         self.host = host
         self.port = port
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-        self.socket.connect((host, port))
-        self.sockin = self.socket.makefile('r')
-        self.sockout = self.socket.makefile('w')
+        self.ioloop = ioloop
+        self.reader = None
+        self.writer = None
 
+    @asyncio.coroutine
+    def open(self):
+        self.reader, self.writer = yield from asyncio.open_connection(
+            self.host, self.port, loop=self.ioloop)
+
+    @asyncio.coroutine
     def send_message(self, m):
-        j = json.dumps(m)
-        j = j + '\n'
-        self.sockout.writelines([j])
-        self.sockout.flush()
+        msg = json.dumps(m) + '\n'
+        self.writer.write(msg.encode('utf-8'))
+        yield from self.writer.drain()
 
+    @asyncio.coroutine
     def recv_message(self):
-        line = self.sockin.readline()
-        j = json.loads(line)
+        line = yield from self.reader.readline()
+        j = json.loads(line.decode('utf-8'))
         return j
 
     def close(self):
-        self.sockin = self.sockout = None
-        self.socket.close()
+        self.reader = self.writer = None
+        self.writer.close()
 
-    def authenticate(self, user, pw):
-        self.send_message({
+    async def authenticate(self, user, pw):
+        await self.send_message({
             'type': 'login',
             'creds': {'user': user, 'pass': pw}
         })
-        resp = self.recv_message()
+        resp = await self.recv_message()
         if (('type' not in resp) or ('value' not in resp) or
                 (resp['type'] != 'auth') or (resp['value'] != 'Welcome')):
             raise Connection.CannotAuthenticate()
 
+    @asyncio.coroutine
     def look(self):
-        self.send_message({'type': 'whereami'})
+        yield from self.send_message({'type': 'whereami'})
 
+    @asyncio.coroutine
     def take_exit(self, eid):
-        self.send_message({'type': 'exit', 'eid':  eid})
+        yield from self.send_message({'type': 'exit', 'eid':  eid})
 
+    @asyncio.coroutine
     def say(self, s):
-        self.send_message({'type': 'say', 'value': s})
+        yield from self.send_message({'type': 'say', 'value': s})
+
+    @asyncio.coroutine
+    async def wait_for_place(self):
+        while True:
+            m = await self.recv_message()
+            if m['type'] == 'place':
+                return m['value']
+
+
+

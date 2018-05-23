@@ -5,8 +5,8 @@ from bs4 import BeautifulSoup
 from web import get_web_page
 
 
-def scrape_inteng(debug=False):
-    r = get_web_page('https://interestingengineering.com', debug=debug)
+async def scrape_inteng():
+    r = await get_web_page('https://interestingengineering.com')
     soup = BeautifulSoup(r, 'html.parser')
     tags = []
     for cls, get_title in (

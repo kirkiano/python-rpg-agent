@@ -6,8 +6,8 @@ from bs4 import BeautifulSoup
 from web import get_web_page
 
 
-def _scrape_aps(url, debug=False):
-    r = get_web_page(url, debug=debug)
+async def _scrape_aps(url):
+    r = await get_web_page(url)
     soup = BeautifulSoup(r, 'html.parser')
     return [dict(id=uuid4(), title=t['data-title'])
             for t in soup.find_all('a', {'data-kind': 'FeaturedArticle'})]
@@ -24,12 +24,12 @@ scrape_rmp = partial(_scrape_aps, 'https://journals.aps.org/rmp/')
 scrape_prfluids = partial(_scrape_aps, 'https://journals.aps.org/prfluids/')
 scrape_prapplied = partial(_scrape_aps, 'https://journals.aps.org/prapplied/')
 scrape_revmodphys = partial(_scrape_aps, 'https://journals.aps.org/rmp/')
-scrape_prmaterials = partial(_scrape_aps, 'https://journals.aps.org/prmaterials/')
+scrape_prmaterials = partial(_scrape_aps,
+                             'https://journals.aps.org/prmaterials/')
 
 
-def scrape_apsnews(debug=False):
-    r = get_web_page('http://www.aps.org/publications/apsnews/index.cfm',
-                     debug=debug)
+async def scrape_apsnews():
+    r = await get_web_page('http://www.aps.org/publications/apsnews/index.cfm')
     soup = BeautifulSoup(r, 'html.parser')
     sections = soup.find_all(class_='featured-page')
     tags = []
@@ -38,17 +38,16 @@ def scrape_apsnews(debug=False):
     return tags
 
 
-def scrape_apsphysics(debug=False):
-    r = get_web_page('https://physics.aps.org/', debug=debug)
+async def scrape_apsphysics():
+    r = await get_web_page('https://physics.aps.org/')
     soup = BeautifulSoup(r, 'html.parser')
     tags = [dict(id=uuid4(), title=t.text)
             for t in soup.find_all(class_='feed-item-title')]
     return tags
 
 
-def scrape_physicstoday(debug=False):
+async def scrape_physicstoday():
     url = 'http://feeds.feedburner.com/pt6dailyedition?format=sigpro'
-    lines = get_web_page(url, debug=debug).decode('utf-8').splitlines()
+    lines = (await get_web_page(url)).decode('utf-8').splitlines()
     quoteds = [ln[182:-26] for ln in lines[3:9:2]]
     return [dict(id=uuid4(), title=q) for q in quoteds]
-
