@@ -35,7 +35,7 @@ def parse_args():
         metavar='NTITLES',
         type=int,
         default=1,
-        help='Number of PubPeer titles to announce'
+        help='Number of titles to announce'
     )
     parser.add_argument(
         '--waitleave',
