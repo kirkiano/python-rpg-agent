@@ -7,9 +7,10 @@ async def scrape_pubpeer():
         body = await resp.text()
         jsn = json.loads(body)
         tags = [
-            dict(id=p['id'],
-                 title=p['title'],
-                 journals=set([j['title'] for j in p['journals']['data']]))
-            for p in jsn['publications']
+            dict(id=pub['id'],
+                 title=pub['title'],
+                 journals=set([jrn['title']
+                               for jrn in pub['journals']['data']]))
+            for pub in jsn['publications']
         ]
         return tags
