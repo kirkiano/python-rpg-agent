@@ -63,21 +63,21 @@ async def run(host, port, botname, download, ntitles,
     pubs = []
     seen = defaultdict(set)
     while True:
-        place = await conn.wait_for_place()
+        location = (await conn.wait_for_place()).location
         t1 = datetime.datetime.now()
         wait_to_download = random.uniform(0, waitdl)
         if t1 - t0 > datetime.timedelta(minutes=wait_to_download):
             t0 = t1
             pubs = await download()
-        unseen_pubs = [p for p in pubs if p['id'] not in seen[place['pid']]]
+        unseen_pubs = [p for p in pubs if p['id'] not in seen[location.id]]
         if do_shuffle:
             random.shuffle(unseen_pubs)
         for pub in unseen_pubs[:min(ntitles, len(unseen_pubs))]:
             await conn.say(pub['title'].strip())
-            seen[place['pid']].add(pub['id'])
+            seen[location.id].add(pub['id'])
         wait_to_move = random.uniform(0, waitleave)
         await asyncio.sleep(wait_to_move)
-        chosen_exit = random.choice([e['eid'] for e in place['exits']])
+        chosen_exit = random.choice([e.id for e in location.exits])
         await conn.take_exit(chosen_exit)
 
 
