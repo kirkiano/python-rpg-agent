@@ -1,6 +1,8 @@
 import asyncio
 import json
 
+from message import ServerMessage, Welcome, Place
+
 
 class Connection(object):
 
@@ -35,9 +37,14 @@ class Connection(object):
 
     @asyncio.coroutine
     def recv_message(self):
-        line = yield from self.reader.readline()
-        j = json.loads(line.decode('utf-8'))
-        return j
+        while True:
+            try:
+                line = yield from self.reader.readline()
+                j = json.loads(line.decode('utf-8'))
+                msg = ServerMessage.from_json(j)
+                return msg
+            except ServerMessage.CannotParse:
+                continue  # skip uninteresting messages
 
     def close(self):
         self.reader = self.writer = None
@@ -49,8 +56,7 @@ class Connection(object):
             'creds': {'user': user, 'pass': pw}
         })
         resp = await self.recv_message()
-        if (('type' not in resp) or ('value' not in resp) or
-                (resp['type'] != 'auth') or (resp['value'] != 'Welcome')):
+        if not isinstance(resp, Welcome):
             raise Connection.CannotAuthenticate()
 
     @asyncio.coroutine
@@ -68,9 +74,6 @@ class Connection(object):
     @asyncio.coroutine
     async def wait_for_place(self):
         while True:
-            m = await self.recv_message()
-            if m['type'] == 'place':
-                return m['value']
-
-
-
+            msg = await self.recv_message()
+            if isinstance(msg, Place):
+                return msg
