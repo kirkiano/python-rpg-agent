@@ -6,7 +6,7 @@ from web import get_web_page
 
 
 async def scrape_breitbart():
-    html = await get_web_page('http://www.breitbart.com/')
+    html = await get_web_page('https://www.breitbart.com/')
     soup = BeautifulSoup(html, 'html.parser')
     tags = soup.find_all('article')
     tags.extend(soup.find_all('div', {'id': 'BBTrendNow'}))

@@ -6,7 +6,7 @@ from web import get_web_page
 
 
 def scrape_counterpunch():
-    html = get_web_page('http://www.counterpunch.org')
+    html = get_web_page('https://www.counterpunch.org')
     soup = BeautifulSoup(html, 'html.parser')
 
     def title_then_author(tag):
