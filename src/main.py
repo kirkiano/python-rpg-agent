@@ -6,6 +6,17 @@ from collections import defaultdict
 import asyncio
 from traceback import print_exc
 
+"""
+TODO: instead of import these statically, import them dynamically with
+import_module. Specific example:
+
+    from importlib import import_module
+    ajp = import_module('bots.enabled.ajp')  # ajp.scrape_ajp now available
+    
+Change function names 'scrape_X' to 'scrape' and distiguish them instead by
+prefix, e.g., ajp.scrape.
+"""
+
 from connect import Connection
 from bots.aps import *
 from bots.pubpeer import scrape_pubpeer
