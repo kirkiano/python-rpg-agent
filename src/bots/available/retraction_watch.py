@@ -11,3 +11,6 @@ async def scrape_retwatch():
     tags = soup.find_all(class_='entry-title')
     return [dict(id=uuid4(), title=tags.contents[0].text) for tags in tags
             if hasattr(tags.contents[0], 'text')]
+
+
+SCRAPERS = [scrape_retwatch]
