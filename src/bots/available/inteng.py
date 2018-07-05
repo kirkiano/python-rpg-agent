@@ -16,3 +16,6 @@ async def scrape_inteng():
         tags += [dict(id=uuid4(), title=get_title(tag))
                  for tag in soup.find_all('a', {'class': cls})]
     return tags
+
+
+SCRAPERS = [scrape_inteng]

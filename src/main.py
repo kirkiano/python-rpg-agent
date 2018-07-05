@@ -1,30 +1,14 @@
-import sys
+import os
 import argparse
 import datetime
 import random
 from collections import defaultdict
 import asyncio
 from traceback import print_exc
-
-"""
-TODO: instead of import these statically, import them dynamically with
-import_module. Specific example:
-
-    from importlib import import_module
-    ajp = import_module('bots.enabled.ajp')  # ajp.scrape_ajp now available
-    
-Change function names 'scrape_X' to 'scrape' and distiguish them instead by
-prefix, e.g., ajp.scrape.
-"""
+from importlib import import_module
+from functools import partial, reduce
 
 from connect import Connection
-from bots.aps import *
-from bots.pubpeer import scrape_pubpeer
-from bots.inteng import scrape_inteng
-from bots.retraction_watch import scrape_retwatch
-from bots.verge import scrape_verge
-from bots.ajp import scrape_ajp
-from bots.science import scrape_sciencemag
 
 
 def parse_args():
@@ -46,7 +30,7 @@ def parse_args():
         metavar='NTITLES',
         type=int,
         default=1,
-        help='Number of titles to announce'
+        help='Maximum number of titles a bot should announce per download'
     )
     parser.add_argument(
         '--waitleave',
@@ -62,29 +46,46 @@ def parse_args():
         default=1200,
         help='Maxmum time (minutes) bot waits before redownloading'
     )
+    parser.add_argument(
+        '-v',
+        '--verbose',
+        action='store_true',
+        default=False,
+        help='Print verbose output',
+        dest='verbose',
+    )
     return parser.parse_args()
 
 
-async def run(host, port, botname, download, ntitles,
-              waitleave, waitdl, ioloop, do_shuffle=True):
-    conn = await Connection.login(host, port, botname, botname, ioloop)
+async def run(host, port, bot_name, bot_func, ntitles, waitleave, waitdl,
+              ioloop, do_shuffle=True, verbose=False):
+    conn = await Connection.login(host, port, bot_name, bot_name, ioloop)
+    if verbose:
+        print(f'{bot_name} has connected to the RPG server.')
     await conn.recv_message()  # welcome
-    await conn.look()
+    await conn.look()  # TODO: consider deleting this look
     t0 = datetime.datetime.now() - datetime.timedelta(minutes=1 + waitdl)
     pubs = []
     seen = defaultdict(set)
     while True:
         location = (await conn.wait_for_place()).location
+        if verbose:
+            print(f'{bot_name} is now in {location.name}.')
         t1 = datetime.datetime.now()
         wait_to_download = random.uniform(0, waitdl)
         if t1 - t0 > datetime.timedelta(minutes=wait_to_download):
             t0 = t1
-            pubs = await download()
+            pubs = await bot_func()
+            if verbose:
+                print(f'{bot_name} has downloaded its content.')
         unseen_pubs = [p for p in pubs if p['id'] not in seen[location.id]]
         if do_shuffle:
             random.shuffle(unseen_pubs)
         for pub in unseen_pubs[:min(ntitles, len(unseen_pubs))]:
-            await conn.say(pub['title'].strip())
+            saying = pub['title'].strip()
+            await conn.say(saying)
+            if verbose:
+                print(f'{bot_name} has said: {saying}.')
             seen[location.id].add(pub['id'])
         wait_to_move = random.uniform(0, waitleave)
         await asyncio.sleep(wait_to_move)
@@ -95,23 +96,28 @@ async def run(host, port, botname, download, ntitles,
 async def run_safely(*args, **kwargs):
     try:
         await run(*args, **kwargs)
-    except Exception:
+    except Exception:  # catching all Exceptions is NOT too broad
         print()
-        print(f"{kwargs['botname']} crashed:")
+        print(f"{kwargs['bot_name']} crashed:")
         print_exc()
 
 
-def main(host, port, ntitles, waitleave, waitdl):
-    bot_names = ('ajp', 'apsnews', 'apsphysics', 'inteng', 'physicstoday',
-                 'prd', 'prl', 'prx', 'pubpeer', 'retwatch', 'sciencemag',
-                 'verge')
-    downloads = [getattr(sys.modules[__name__], 'scrape_' + bot)
-                 for bot in bot_names]
+def main(host, port, ntitles, waitleave, waitdl, verbose=False):
+    enabled_filenames = [f[:-3] for f in os.listdir('bots/enabled')
+                         if f.endswith('.py') and f != '__init__.py']
+    enabled_bot_modules = [
+        import_module(f'bots.enabled.{f}') for f in enabled_filenames
+    ]
+    scraper_lists = [getattr(m, 'SCRAPERS')
+                     for m in enabled_bot_modules if hasattr(m, 'SCRAPERS')]
+    scrapers = reduce(lambda acc, ss: acc + ss, scraper_lists)
+    bot_names = [scraper.__name__[7:] for scraper in scrapers]
     ioloop = asyncio.get_event_loop()
     runnit = partial(run_safely, host=host, port=port, ntitles=ntitles,
-                     waitleave=waitleave, waitdl=waitdl, ioloop=ioloop)
-    tasks = [ioloop.create_task(runnit(botname=botname, download=dl))
-             for botname, dl in zip(bot_names, downloads)]
+                     waitleave=waitleave, waitdl=waitdl, ioloop=ioloop,
+                     verbose=verbose)
+    tasks = [ioloop.create_task(runnit(bot_name=bot_name, bot_func=bot))
+             for bot_name, bot in zip(bot_names, scrapers)]
     ioloop.run_until_complete(asyncio.wait(tasks))
     ioloop.close()
 
@@ -119,4 +125,4 @@ def main(host, port, ntitles, waitleave, waitdl):
 if __name__ == '__main__':
     clargs = parse_args()
     main(clargs.host, clargs.port, clargs.ntitles,
-         clargs.waitleave, clargs.waitdl)
+         clargs.waitleave, clargs.waitdl, clargs.verbose)
