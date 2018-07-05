@@ -6,7 +6,7 @@ from web import get_web_page
 
 
 def scrape_freespeech():
-    html = get_web_page('http://freespeech.org/')
+    html = get_web_page('https://freespeech.org/')
     soup = BeautifulSoup(html, 'html.parser')
 
     return [dict(id=uuid4(), title=t.find('p').text)

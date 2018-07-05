@@ -6,7 +6,7 @@ from web import get_web_page
 
 
 async def scrape_freethought():
-    html = await get_web_page('http://thefreethoughtproject.com/')
+    html = await get_web_page('https://thefreethoughtproject.com/')
     soup = BeautifulSoup(html, 'html.parser')
 
     def select(a):

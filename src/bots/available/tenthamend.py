@@ -6,7 +6,7 @@ from web import get_web_page
 
 
 async def scrape_tenthamend():
-    html = await get_web_page('http://tenthamendmentcenter.com/')
+    html = await get_web_page('https://tenthamendmentcenter.com/')
     soup = BeautifulSoup(html, 'html.parser')
 
     def select(a):

@@ -31,7 +31,7 @@ scrape_prmaterials = named_partial(_scrape_aps,
 
 async def scrape_apsnews():
     html = await get_web_page(
-        'http://www.aps.org/publications/apsnews/index.cfm')
+        'https://www.aps.org/publications/apsnews/index.cfm')
     soup = BeautifulSoup(html, 'html.parser')
     sections = soup.find_all(class_='featured-page')
     tags = []
@@ -50,7 +50,7 @@ async def scrape_apsphysics():
 
 
 async def scrape_physicstoday():
-    url = 'http://feeds.feedburner.com/pt6dailyedition?format=sigpro'
+    url = 'https://feeds.feedburner.com/pt6dailyedition?format=sigpro'
     lines = (await get_web_page(url)).decode('utf-8').splitlines()
     quoteds = [ln[182:-26] for ln in lines[3:9:2]]
     return [dict(id=uuid4(), title=quoted) for quoted in quoteds]

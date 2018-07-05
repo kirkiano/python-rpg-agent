@@ -6,7 +6,7 @@ from web import get_web_page
 
 
 async def scrape_ronpaul():
-    html = await get_web_page('http://ronpaulinstitute.org/')
+    html = await get_web_page('https://ronpaulinstitute.org/')
     soup = BeautifulSoup(html, 'html.parser')
     sayings = []
 
