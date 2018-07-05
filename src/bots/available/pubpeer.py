@@ -14,3 +14,6 @@ async def scrape_pubpeer():
             for pub in jsn['publications']
         ]
         return tags
+
+
+SCRAPERS = [scrape_pubpeer]

@@ -11,3 +11,6 @@ async def scrape_ajp():
     tags = [dict(id=uuid4(), title=t.text)
             for t in soup.find_all(class_='title')]
     return tags
+
+
+SCRAPERS = [scrape_ajp]
