@@ -5,8 +5,8 @@ from bs4 import BeautifulSoup
 from web import get_web_page
 
 
-def scrape_commondreams():
-    html = get_web_page('https://www.commondreams.org')
+async def scrape_commondreams():
+    html = await get_web_page('https://www.commondreams.org')
     soup = BeautifulSoup(html, 'html.parser')
     return [dict(id=uuid4(), title=t.text.strip())
             for t in
