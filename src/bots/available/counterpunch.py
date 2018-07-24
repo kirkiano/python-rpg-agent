@@ -5,8 +5,8 @@ from bs4 import BeautifulSoup
 from web import get_web_page
 
 
-def scrape_counterpunch():
-    html = get_web_page('https://www.counterpunch.org')
+async def scrape_counterpunch():
+    html = await get_web_page('https://www.counterpunch.org')
     soup = BeautifulSoup(html, 'html.parser')
 
     def title_then_author(tag):

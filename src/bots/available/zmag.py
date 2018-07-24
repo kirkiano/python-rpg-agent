@@ -5,8 +5,8 @@ from bs4 import BeautifulSoup
 from web import get_web_page
 
 
-def scrape_zmag():
-    html = get_web_page('https://zcomm.org/zmag')
+async def scrape_zmag():
+    html = await get_web_page('https://zcomm.org/zmag')
     soup = BeautifulSoup(html, 'html.parser')
     widgets = soup.find_all({'class': 'zmagwidget'})
     [current_zmag] = [w for w in widgets
