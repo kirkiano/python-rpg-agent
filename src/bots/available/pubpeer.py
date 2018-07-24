@@ -1,19 +1,16 @@
-import json
-import aiohttp
+from scraper import json_scraper
 
 
-async def scrape_pubpeer():
-    async with aiohttp.request('GET', 'https://pubpeer.com/api/recent') as resp:
-        body = await resp.text()
-        jsn = json.loads(body)
-        tags = [
-            dict(id=pub['id'],
-                 title=pub['title'],
-                 journals=set([jrn['title']
-                               for jrn in pub['journals']['data']]))
-            for pub in jsn['publications']
-        ]
-        return tags
+@json_scraper('https://pubpeer.com/api/recent')
+def scrape_pubpeer(json_content):
+    tags = [
+        dict(id=pub['id'],
+             title=pub['title'],
+             journals=set([jrn['title']
+                           for jrn in pub['journals']['data']]))
+        for pub in json_content['publications']
+    ]
+    return tags
 
 
 SCRAPERS = [scrape_pubpeer]

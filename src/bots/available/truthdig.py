@@ -1,13 +1,10 @@
 from uuid import uuid4
 
-from bs4 import BeautifulSoup
-
-from web import get_web_page
+from scraper import html_scraper
 
 
-async def scrape_truthdig():
-    html = await get_web_page('https://www.truthdig.com/')
-    soup = BeautifulSoup(html, 'html.parser')
+@html_scraper('https://www.truthdig.com')
+def scrape_truthdig(soup):
     attr = 'archive-home__title'
     tags = soup.find_all(class_=lambda a: a and a.startswith(attr))
     sayings = [tag.contents[1].text for tag in tags]

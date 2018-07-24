@@ -2,6 +2,15 @@ import aiohttp
 
 
 async def get_web_page(url):
+    """
+    Download web content.
+
+    Args:
+        url (str): URL to fetch
+
+    Returns:
+        bytes: the body of the HTTP response
+    """
     headers = {
         'User-Agent': ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:55.0)'
                        ' Gecko/20100101 Firefox/55.0'),

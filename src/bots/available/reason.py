@@ -1,13 +1,10 @@
 from uuid import uuid4
 
-from bs4 import BeautifulSoup
-
-from web import get_web_page
+from scraper import html_scraper
 
 
-async def scrape_reason():
-    html = await get_web_page('https://reason.com')
-    soup = BeautifulSoup(html, 'html.parser')
+@html_scraper('https://reason.com')
+def scrape_reason(soup):
     posts = soup.find('div', {'id': 'featured_posts'})
     return [dict(id=uuid4(), title=t.find('h3').text.strip())
             for t in posts.find_all('li', {'class': 'post'})]

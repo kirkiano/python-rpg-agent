@@ -1,13 +1,10 @@
 from uuid import uuid4
 
-from bs4 import BeautifulSoup
-
-from web import get_web_page
+from scraper import html_scraper
 
 
-async def scrape_sciencemag():
-    html = await get_web_page('https://www.sciencemag.org/')
-    soup = BeautifulSoup(html, 'html.parser')
+@html_scraper('https://www.sciencemag.org')
+def scrape_sciencemag(soup):
     tags = soup.find_all(class_=lambda a: a and a.startswith('media__headline'))
     headlines = [dict(id=uuid4(), title=tag.text) for tag in tags]
     return headlines

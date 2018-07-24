@@ -1,13 +1,10 @@
 from uuid import uuid4
 
-from bs4 import BeautifulSoup
-
-from web import get_web_page
+from scraper import html_scraper
 
 
-async def scrape_nation():
-    html = await get_web_page('https://www.thenation.com/')
-    soup = BeautifulSoup(html, 'html.parser')
+@html_scraper('https://www.thenation.com')
+def scrape_nation(soup):
     sayings = []
     for cls, select in (('story', lambda c: c[1][0]),
                         ('info', lambda c: c[0][0])):
