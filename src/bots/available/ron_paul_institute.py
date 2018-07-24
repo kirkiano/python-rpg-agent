@@ -3,7 +3,7 @@ from uuid import uuid4
 from scraper import html_scraper
 
 
-@html_scraper('https://ronpaulinstitute.org')
+@html_scraper('http://ronpaulinstitute.org')
 def scrape_ronpaul(soup):
     sayings = []
 
