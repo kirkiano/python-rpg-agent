@@ -1,14 +1,10 @@
 from uuid import uuid4
 
-from bs4 import BeautifulSoup
-
-from web import get_web_page
+from scraper import html_scraper
 
 
-async def scrape_freethought():
-    html = await get_web_page('https://thefreethoughtproject.com/')
-    soup = BeautifulSoup(html, 'html.parser')
-
+@html_scraper('https://thefreethoughtproject.com')
+def scrape_freethought(soup):
     def select(a):
         return a and a.startswith('td_module_trending_now')
 

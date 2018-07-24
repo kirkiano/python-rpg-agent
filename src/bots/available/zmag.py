@@ -1,13 +1,10 @@
 from uuid import uuid4
 
-from bs4 import BeautifulSoup
-
-from web import get_web_page
+from scraper import html_scraper
 
 
-async def scrape_zmag():
-    html = await get_web_page('https://zcomm.org/zmag')
-    soup = BeautifulSoup(html, 'html.parser')
+@html_scraper('https://zcomm.org/zmag')
+def scrape_zmag(soup):
     widgets = soup.find_all({'class': 'zmagwidget'})
     [current_zmag] = [w for w in widgets
                       if w.find('h5') and

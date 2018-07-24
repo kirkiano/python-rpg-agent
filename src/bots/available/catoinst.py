@@ -1,13 +1,10 @@
 from uuid import uuid4
 
-from bs4 import BeautifulSoup
-
-from web import get_web_page
+from scraper import html_scraper
 
 
-async def scrape_catoinst():
-    html = await get_web_page('https://www.cato.org')
-    soup = BeautifulSoup(html, 'html.parser')
+@html_scraper('https://www.cato.org')
+def scrape_catoinst(soup):
     tags = [dict(id=uuid4(), title=t.text) for t in soup.find_all('article')]
     return tags
 

@@ -1,13 +1,10 @@
 from uuid import uuid4
 
-from bs4 import BeautifulSoup
-
-from web import get_web_page
+from scraper import html_scraper
 
 
-async def scrape_commondreams():
-    html = await get_web_page('https://www.commondreams.org')
-    soup = BeautifulSoup(html, 'html.parser')
+@html_scraper('https://www.commondreams.org')
+def scrape_commondreams(soup):
     return [dict(id=uuid4(), title=t.text.strip())
             for t in
             (soup

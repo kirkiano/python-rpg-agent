@@ -1,14 +1,10 @@
 from uuid import uuid4
 
-from bs4 import BeautifulSoup
-
-from web import get_web_page
+from scraper import html_scraper
 
 
-async def scrape_tenthamend():
-    html = await get_web_page('https://tenthamendmentcenter.com/')
-    soup = BeautifulSoup(html, 'html.parser')
-
+@html_scraper('https://tenthamendmentcenter.com')
+def scrape_tenthamend(soup):
     def select(a):
         return a and a.startswith('blog-content')
 

@@ -1,13 +1,10 @@
 from uuid import uuid4
 
-from bs4 import BeautifulSoup
-
-from web import get_web_page
+from scraper import html_scraper
 
 
-async def scrape_intercept():
-    html = await get_web_page('https://theintercept.com')
-    soup = BeautifulSoup(html, 'html.parser')
+@html_scraper('https://theintercept.com')
+def scrape_intercept(soup):
     tags = []
     for cls in ('HomeFeature-title', 'Promo-title'):
         tags += [dict(id=uuid4(), title=t.text)

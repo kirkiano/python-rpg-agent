@@ -1,13 +1,10 @@
 from uuid import uuid4
 
-from bs4 import BeautifulSoup
-
-from web import get_web_page
+from scraper import html_scraper
 
 
-async def scrape_breitbart():
-    html = await get_web_page('https://www.breitbart.com/')
-    soup = BeautifulSoup(html, 'html.parser')
+@html_scraper('https://www.breitbart.com')
+def scrape_breitbart(soup):
     tags = soup.find_all('article')
     tags.extend(soup.find_all('div', {'id': 'BBTrendNow'}))
     sayings = [dict(id=uuid4(), title=t.text) for t in tags]
