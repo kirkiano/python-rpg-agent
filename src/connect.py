@@ -1,33 +1,43 @@
 import asyncio
 import json
+from collections import namedtuple
 
 from message import ServerMessage, Welcome, Place
 
 
 class Connection(object):
 
+    Server = namedtuple('Server', 'host, port')
+
+    Credentials = namedtuple('Credentials', 'user, pw')
+
     @staticmethod
-    async def login(host, port, user, pw, ioloop):
-        conn = Connection(host, int(port), ioloop)
-        await conn.open()
-        await conn.authenticate(user, pw)
+    async def login(server, credentials, ioloop):
+        conn = Connection(ioloop)
+        await conn.open(server)
+        await conn.authenticate(credentials)
         return conn
 
     class CannotAuthenticate(Exception):
         def __init__(self):
             self.msg = 'Cannot authenticate with given credentials'
 
-    def __init__(self, host, port, ioloop):
-        self.host = host
-        self.port = port
+    def __init__(self, ioloop):
+        """
+        Args:
+            ioloop (asyncio ioloop):
+        """
         self.ioloop = ioloop
+        self.server = None
         self.reader = None
         self.writer = None
+        self.credentials = None
 
     @asyncio.coroutine
-    def open(self):
+    def open(self, server):
         self.reader, self.writer = yield from asyncio.open_connection(
-            self.host, self.port, loop=self.ioloop)
+            server.host, server.port, loop=self.ioloop)
+        self.server = server
 
     @asyncio.coroutine
     def send_message(self, m):
@@ -50,14 +60,16 @@ class Connection(object):
         self.reader = self.writer = None
         self.writer.close()
 
-    async def authenticate(self, user, pw):
+    async def authenticate(self, credentials):
         await self.send_message({
             'type': 'login',
-            'creds': {'user': user, 'pass': pw}
+            'creds': {'user': credentials.user,
+                      'pass': credentials.pw}
         })
         resp = await self.recv_message()
         if not isinstance(resp, Welcome):
             raise Connection.CannotAuthenticate()
+        self.credentials = credentials
 
     @asyncio.coroutine
     def look(self):
