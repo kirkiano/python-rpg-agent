@@ -31,21 +31,23 @@ class Location(RPGObject):
         super(Location, self).__init__(pid)
         self.name = name
         self.desc = desc
-        self.exits = [Exit.from_json(e) for e in exits]
+        self.exits = exits
 
     @staticmethod
     def from_json(j):
-        return Location(**j)
+        exits = [Exit.from_json(e) for e in j['exits']]
+        return Location(j['pid'], j['name'], j['desc'], exits)
 
 
 class Exit(RPGObject):
     def __init__(self, eid, name, dir, trans, nbr):
         super(Exit, self).__init__(eid)
         self.name = name
-        self.dir = getattr(Direction, dir.upper())
+        self.dir = dir
         self.trans = trans
         self.nbr_id, self.nbr_name = nbr
 
     @staticmethod
     def from_json(j):
-        return Exit(**j)
+        dir = getattr(Direction, j['dir'].upper())
+        return Exit(j['eid'], j['name'], dir, j['trans'], j['nbr'])

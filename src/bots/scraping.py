@@ -3,12 +3,13 @@ import asyncio
 import random
 from collections import defaultdict, namedtuple
 
-from .general import Bot
+from .bot import Bot
 from connect import Connection
 
 
 class ScrapingBot(Bot):
 
+    # see parse_args for meanings of these params
     Params = namedtuple('Params', 'ntitles, waitleave, waitdl')
 
     def __init__(self, name, ioloop, download_func, params,
@@ -17,7 +18,9 @@ class ScrapingBot(Bot):
         Args:
             name (string): bot name
             ioloop (asyncio.ioloop):
-            download_func: downloads and scrapes this bot's target content
+            download_func: async func that downloads and scrapes this bot's
+                    target content, returning a list of dicts, each having
+                    two keys: id & title
             params (ScrapingBot.Params):
             do_shuffle (bool): randomize the order of headlines
             verbose (bool):
@@ -28,6 +31,7 @@ class ScrapingBot(Bot):
         self.do_shuffle = do_shuffle
         self.headlines = []
         self.seen = defaultdict(set)
+        self.location = None
 
         # set time of last download far enough in the
         # past to trigger a fresh download
@@ -44,16 +48,20 @@ class ScrapingBot(Bot):
         walk around from room to room, announcing headlines from the content.
         """
         while True:
-            self.location = (await self.conn.wait_for_place()).location
-            if self.verbose:
-                print(f'{self.conn.user} is now in {self.location.name}.')
-            await self._maybe_scrape()
-            if self.verbose:
-                print(f'{self.conn.user} has downloaded its content.')
-            await self._speak_headlines()
-            wait_to_move = random.uniform(0, self.params.waitleave)
-            await asyncio.sleep(wait_to_move)
-            await self._take_random_exit()
+            await self._run_iteration()
+
+    async def _run_iteration(self):
+        await self.conn.look()
+        self.location = (await self.conn.wait_for_place()).location
+        if self.verbose:
+            print(f'{self.conn.user} is now in {self.location.name}.')
+        await self._maybe_scrape()
+        if self.verbose:
+            print(f'{self.conn.user} has downloaded its content.')
+        await self._speak_headlines()
+        wait_to_move = random.uniform(0, self.params.waitleave)
+        await asyncio.sleep(wait_to_move)
+        await self._take_random_exit()
 
     async def _maybe_scrape(self):
         """

@@ -20,7 +20,6 @@ class Bot(object):
         self.ioloop = ioloop
         self.verbose = verbose
         self.conn = None
-        self.location = None
 
     def is_connected(self):
         return bool(self.conn)
@@ -37,7 +36,6 @@ class Bot(object):
         if self.verbose:
             print(f'{self.name} has connected to the RPG server.')
         await self.conn.recv_message()  # welcome
-        await self.conn.look()  # TODO: consider deleting this look
 
     @abstractmethod
     async def run(self):
