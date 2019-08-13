@@ -21,9 +21,12 @@ class TestScrapingBot(TestAsyncIO):
         waitleave = 0  # seconds
         waitdl = 0  # minutes
         bot_params = ScrapingBot.Params(ntitles, waitleave, waitdl)
-        bot = ScrapingBot('dummy', self.ioloop, download_func, bot_params)
+        server = Connection.Server('dummy_host', 0)
+        creds = Connection.Credentials('dummy_user', 'dummy_password')
+        bot = ScrapingBot(server, creds, self.ioloop, download_func,
+                          bot_params)
         server = Connection.Server('dummy_host', 'dummy_port')
-        self.ioloop.run_until_complete(bot.connect(server))
+        self.ioloop.run_until_complete(bot.connect())
 
         mock_conn = Connection.login.mock.return_value
         assert not download_func.mock.called

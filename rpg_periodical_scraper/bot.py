@@ -7,6 +7,7 @@ from rpg_client_utils.bot import Bot
 
 
 class ScrapingBot(Bot):
+    """A ``Bot`` that scrapes websites."""
 
     # see parse_args for meanings of these params
     Params = namedtuple('Params', 'ntitles, waitleave, waitdl')

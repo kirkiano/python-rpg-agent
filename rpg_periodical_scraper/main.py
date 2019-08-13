@@ -3,7 +3,7 @@ import asyncio
 
 from rpg_client_utils.connect import Connection
 from kirkiano_scraping_utils import scrapers
-from bot import ScrapingBot
+from rpg_periodical_scraper.bot import ScrapingBot
 
 
 def parse_args():
