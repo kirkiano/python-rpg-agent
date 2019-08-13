@@ -15,8 +15,8 @@ class ScrapingBot(Bot):
                  do_shuffle=True, verbose=False):
         """
         Args:
-            server (Connection.Server):
-            credentials (Connection.Credentials):
+            server (Connection.Server): server to log in to
+            credentials (Connection.Credentials): credentials for login
             ioloop (asyncio.ioloop):
             download_func: async func that downloads and scrapes this bot's
                     target content, returning a list of dicts, each having
