@@ -4,6 +4,7 @@ import random
 from collections import defaultdict, namedtuple
 
 from rpg_client_utils.bot import Bot
+from rpg_client_utils.server_message import Place, Exits
 
 
 class ScrapingBot(Bot):
@@ -33,7 +34,8 @@ class ScrapingBot(Bot):
         self.do_shuffle = do_shuffle
         self.headlines = []
         self.seen = defaultdict(set)
-        self.location = None
+        self.place = None
+        self.exits = None
 
         # set time of last download far enough in the
         # past to trigger a fresh download
@@ -49,10 +51,10 @@ class ScrapingBot(Bot):
             await self._run_iteration()
 
     async def _run_iteration(self):
-        await self.conn.look()
-        self.location = (await self.conn.wait_for_place()).location
+        await self.conn.where_am_i()
+        self.place = (await self.conn.wait_for(Place)).place
         if self.verbose:
-            print(f'{self.conn.user} is now in {self.location.name}.')
+            print(f'{self.conn.user} is now in {self.place.name}.')
         await self._maybe_scrape()
         if self.verbose:
             print(f'{self.conn.user} has downloaded its content.')
@@ -78,7 +80,7 @@ class ScrapingBot(Bot):
         Announce (at most) the next ntitles headlines.
         """
         unseen_headlines = [p for p in self.headlines
-                            if p['id'] not in self.seen[self.location.id]]
+                            if p['id'] not in self.seen[self.place.id]]
         if self.do_shuffle:
             random.shuffle(unseen_headlines)
         num_headlines_to_speak = min(self.params.ntitles, len(unseen_headlines))
@@ -87,9 +89,11 @@ class ScrapingBot(Bot):
             await self.conn.say(saying)
             if self.verbose:
                 print(f'{self.conn.user} has said: {saying}.')
-            self.seen[self.location.id].add(headline['id'])
+            self.seen[self.place.id].add(headline['id'])
 
     async def _take_random_exit(self):
-        """Leave the current location by an exit chosen at random."""
-        chosen_exit = random.choice([e.id for e in self.location.exits])
+        """Leave the current place by an exit chosen at random."""
+        await self.conn.ways_out()
+        exits = (await self.conn.wait_for(Exits)).exits
+        chosen_exit = random.choice([e.id for e in exits])
         await self.conn.take_exit(chosen_exit)
