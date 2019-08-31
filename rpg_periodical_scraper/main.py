@@ -4,7 +4,6 @@ import asyncio
 from rpg_client_utils.connect import Connection
 from kirkiano_scraping_utils import scrapers
 from rpg_periodical_scraper.bot import ScrapingBot
-from .bot_address import bot_address
 
 
 def parse_args():
@@ -26,7 +25,9 @@ def parse_args():
         metavar='BOTFILE',
         help=('text file in which each line has the name of a desired bot,'
               ' its password, and the name of the address to which it should'
-              ' be confined, all separated by whitespace')
+              ' be confined, all separated by a single space. Any whitespace'
+              ' inside the address name should be limited to one space between'
+              ' its words, and no quote marks should be used to delimit it.')
     )
     parser.add_argument(
         '--ntitles',
@@ -64,12 +65,12 @@ def parse_botfile(botfile):
     # User knows that the file should contain no blank lines
     with open(botfile, 'r') as f:
         contents = f.readlines()
-    return dict([(l[0], l[1:]) for l in
+    return dict([(l[0], [l[1], ' '.join(l[2:])]) for l in
                  [tuple(line.split()) for line in contents]])
 
 
 def get_bots(ioloop, server, botfile, bot_params, verbose=False):
-    def make_bot(name, password, scraper, address):
+    def make_bot(name, scraper, password, address):
         creds = Connection.Credentials(name, password)
         return ScrapingBot(server=server,
                            credentials=creds,
@@ -81,8 +82,7 @@ def get_bots(ioloop, server, botfile, bot_params, verbose=False):
     bot_data = parse_botfile(botfile)
     scrapers_selected = {bn: getattr(scrapers, 'scrape_' + bn)
                          for bn in bot_data}
-    bots = [make_bot(name, pw_and_address[0], scrapers_selected[name],
-                     pw_and_address[1])
+    bots = [make_bot(name, scrapers_selected[name], *pw_and_address)
             for (name, pw_and_address) in bot_data.items()]
     return bots
 
