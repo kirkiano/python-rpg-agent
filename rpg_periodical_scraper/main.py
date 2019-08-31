@@ -4,6 +4,7 @@ import asyncio
 from rpg_client_utils.connect import Connection
 from kirkiano_scraping_utils import scrapers
 from rpg_periodical_scraper.bot import ScrapingBot
+from .bot_address import bot_address
 
 
 def parse_args():
@@ -23,8 +24,9 @@ def parse_args():
     parser.add_argument(
         'botfile',
         metavar='BOTFILE',
-        help=('text file in which each line has the name of a desired bot'
-              ' and its password, separated by whitespace')
+        help=('text file in which each line has the name of a desired bot,'
+              ' its password, and the name of the address to which it should'
+              ' be confined, all separated by whitespace')
     )
     parser.add_argument(
         '--ntitles',
@@ -62,23 +64,26 @@ def parse_botfile(botfile):
     # User knows that the file should contain no blank lines
     with open(botfile, 'r') as f:
         contents = f.readlines()
-    return dict([tuple(line.split()) for line in contents])
+    return dict([(l[0], l[1:]) for l in
+                 [tuple(line.split()) for line in contents]])
 
 
 def get_bots(ioloop, server, botfile, bot_params, verbose=False):
-    def make_bot(name, password, scraper):
+    def make_bot(name, password, scraper, address):
         creds = Connection.Credentials(name, password)
         return ScrapingBot(server=server,
                            credentials=creds,
                            ioloop=ioloop,
                            download_func=scraper,
                            params=bot_params,
+                           address_name=address,
                            verbose=verbose)
-    bot_passwords = parse_botfile(botfile)
+    bot_data = parse_botfile(botfile)
     scrapers_selected = {bn: getattr(scrapers, 'scrape_' + bn)
-                         for bn in bot_passwords}
-    bots = [make_bot(name, pw, scrapers_selected[name])
-            for (name, pw) in bot_passwords.items()]
+                         for bn in bot_data}
+    bots = [make_bot(name, pw_and_address[0], scrapers_selected[name],
+                     pw_and_address[1])
+            for (name, pw_and_address) in bot_data.items()]
     return bots
 
 

@@ -4,7 +4,7 @@ import random
 from collections import defaultdict, namedtuple
 
 from rpg_client_utils.bot import Bot
-from rpg_client_utils.server_message import Place, Exits
+from rpg_client_utils.server_message import Place
 
 
 class ScrapingBot(Bot):
@@ -14,7 +14,7 @@ class ScrapingBot(Bot):
     Params = namedtuple('Params', 'ntitles, waitleave, waitdl')
 
     def __init__(self, server, credentials, ioloop, download_func, params,
-                 do_shuffle=True, verbose=False):
+                 address_name, do_shuffle=True, verbose=False):
         """
         Args:
             server (Connection.Server): server to log in to
@@ -24,6 +24,8 @@ class ScrapingBot(Bot):
                     target content, returning a list of dicts, each having
                     two keys: id & title
             params (ScrapingBot.Params):
+            address_name (str): name of the address to which this scraping bot
+                                should be confined
             do_shuffle (bool): randomize the order of headlines
             verbose (bool):
         """
@@ -35,8 +37,9 @@ class ScrapingBot(Bot):
         self.headlines = []
         self.seen = defaultdict(set)
         self.place = None
-        self.exits = None
-
+        self.is_good_exit = (
+            lambda e: e.addr and e.addr.name.lower() == address_name.lower()
+        )
         # set time of last download far enough in the
         # past to trigger a fresh download
         long_interval = datetime.timedelta(minutes=1 + params.waitdl)
@@ -61,7 +64,7 @@ class ScrapingBot(Bot):
         await self._speak_headlines()
         wait_to_move = random.uniform(0, self.params.waitleave)
         await asyncio.sleep(wait_to_move)
-        await self._take_random_exit()
+        await self.take_random_exit(self.is_good_exit)
 
     async def _maybe_scrape(self):
         """
@@ -90,10 +93,3 @@ class ScrapingBot(Bot):
             if self.verbose:
                 print(f'{self.conn.user} has said: {saying}.')
             self.seen[self.place.id].add(headline['id'])
-
-    async def _take_random_exit(self):
-        """Leave the current place by an exit chosen at random."""
-        await self.conn.ways_out()
-        exits = (await self.conn.wait_for(Exits)).exits
-        chosen_exit = random.choice([e.id for e in exits])
-        await self.conn.take_exit(chosen_exit)
