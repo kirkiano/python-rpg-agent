@@ -4,7 +4,6 @@ import asyncio
 from rpg_client_utils.connect import Connection
 from kirkiano_scraping_utils import scrapers
 from rpg_periodical_scraper.bot import ScrapingBot
-from .bot_address import bot_address
 
 
 def parse_args():
@@ -64,8 +63,14 @@ def parse_botfile(botfile):
     # User knows that the file should contain no blank lines
     with open(botfile, 'r') as f:
         contents = f.readlines()
-    return dict([(l[0], l[1:]) for l in
-                 [tuple(line.split()) for line in contents]])
+
+    def make_bot_data_tuple(line):
+        parts = line.split()
+        if len(parts) < 3:
+            raise Exception(f'botfile malformed at "{line}"')
+        return parts[0], (parts[1], ' '.join(parts[2:]))
+
+    return dict([make_bot_data_tuple(line) for line in contents])
 
 
 def get_bots(ioloop, server, botfile, bot_params, verbose=False):

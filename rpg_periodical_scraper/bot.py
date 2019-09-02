@@ -37,8 +37,8 @@ class ScrapingBot(Bot):
         self.headlines = []
         self.seen = defaultdict(set)
         self.place = None
-        self.is_good_exit = (
-            lambda e: e.addr and e.addr.name.lower() == address_name.lower()
+        self.is_good_exit = lambda e: (
+            e.nbr_addr and e.nbr_addr.name.lower() == address_name.lower()
         )
         # set time of last download far enough in the
         # past to trigger a fresh download
@@ -59,8 +59,6 @@ class ScrapingBot(Bot):
         if self.verbose:
             print(f'{self.conn.user} is now in {self.place.name}.')
         await self._maybe_scrape()
-        if self.verbose:
-            print(f'{self.conn.user} has downloaded its content.')
         await self._speak_headlines()
         wait_to_move = random.uniform(0, self.params.waitleave)
         await asyncio.sleep(wait_to_move)
@@ -74,9 +72,12 @@ class ScrapingBot(Bot):
         t_now = datetime.datetime.now()
         wait_to_download = random.uniform(0, self.params.waitdl)
         waiting_time = datetime.timedelta(minutes=wait_to_download)
-        if t_now - self.t_last_download > waiting_time:
+        diff = t_now - self.t_last_download
+        if diff > waiting_time:
             self.headlines = await self.download_func()
             self.t_last_download = t_now
+            if self.verbose:
+                print(f'{self.conn.user} has downloaded its content.')
 
     async def _speak_headlines(self):
         """
