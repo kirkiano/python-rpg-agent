@@ -1,9 +1,9 @@
 import argparse
 import asyncio
 
-from rpg_client_utils.connect import Connection
-from kirkiano_scraping_utils import scrapers
-from rpg_periodical_scraper.bot import ScrapingBot
+from bot.connect import Connection
+from scrape import scrapers
+from scrape.bot import ScrapingBot
 
 
 def parse_args():

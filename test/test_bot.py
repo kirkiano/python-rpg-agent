@@ -1,9 +1,20 @@
-from unittest.mock import patch
+import asyncio
+from unittest.mock import patch, MagicMock
 
 from rpg_client_utils.connect import Connection
-from rpg_client_utils.test.test_bot import async_mock, MockConnection
+from .mock import async_mock, MockConnection
 from kirkiano_test_utils.asyncio import TestAsyncIO
-from bot import ScrapingBot
+from scrape.bot import ScrapingBot
+
+
+def async_test(f):
+    """See https://stackoverflow.com/questions/23033939/how-to-test-python-3-4-asyncio-code"""
+    def wrapper(*args, **kwargs):
+        coro = asyncio.coroutine(f)
+        future = coro(*args, **kwargs)
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(future)
+    return wrapper
 
 
 class TestScrapingBot(TestAsyncIO):

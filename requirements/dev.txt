@@ -1,2 +1,0 @@
--r prod.txt
-git+ssh://git@github.com/kirkiano/python-test-utils.git@prod#egg=KirkianoTestUtils

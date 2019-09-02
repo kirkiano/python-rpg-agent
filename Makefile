@@ -2,7 +2,10 @@
 .PHONY: test doc
 
 run:
-	python rpg_periodical_scraper/main.py $(PORT) $(BOTFILE)
+	python src/main.py $(PORT) $(BOTFILE)
+
+debug:
+	python src/main.py $(PORT) $(BOTFILE) -v
 
 test:
 	python -m unittest test

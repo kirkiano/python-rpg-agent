@@ -3,8 +3,8 @@ import asyncio
 import random
 from collections import defaultdict, namedtuple
 
-from rpg_client_utils.bot import Bot
-from rpg_client_utils.server_message import Place
+from bot.base import Bot
+from common.server_message import Place
 
 
 class ScrapingBot(Bot):
