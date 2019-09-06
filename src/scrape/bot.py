@@ -59,6 +59,7 @@ class ScrapingBot(Bot):
         if self.verbose:
             print(f'{self.conn.user} is now in {self.place.name}.')
         await self._maybe_scrape()
+        await asyncio.sleep(3)  # wait a couple of seconds before speaking
         await self._speak_headlines()
         wait_to_move = random.uniform(0, self.params.waitleave)
         await asyncio.sleep(wait_to_move)

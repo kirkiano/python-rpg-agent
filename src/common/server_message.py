@@ -1,4 +1,4 @@
-from .rpg_object import Thing, Exit, Place as PlaceModel
+from .rpg_object import Thing, Exit, Direction, Place as PlaceModel
 
 
 class ServerMessage(object):
@@ -230,18 +230,24 @@ class Entered(ServerMessage):
     """
     A character has just entered the current place through one of the exits.
     """
-    def __init__(self, exit_id, thing):
+    def __init__(self, exit_name, thing, nbr_name, direction):
         """
         Args:
-            exit_id (int):
+            exit_name (str):
             thing (Thing): actually contains only the name and id
+            nbr_name (str): name of the place from which the character entered
+            direction (Direction):
         """
-        self.exit_id = exit_id
+        self.exit_name = exit_name
         self.thing = thing
+        self.nbr_name = nbr_name
+        self.direction = direction
 
     @staticmethod
     def from_json(j):
-        return Entered(j['eid'], Thing.from_json(j))
+        thing = Thing(j['tid'], j['tname'])
+        direction = getattr(Direction, j['dxn'].upper())
+        return Entered(j['ename'], thing, j['nbr'], direction)
 
 
 class Exited(ServerMessage):

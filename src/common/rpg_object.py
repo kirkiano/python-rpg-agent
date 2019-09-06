@@ -23,7 +23,7 @@ class RPGObject(ABC):
 
 
 class Thing(RPGObject):
-    def __init__(self, idn, name, description, awake):
+    def __init__(self, idn, name=None, description=None, awake=None):
         super(Thing, self).__init__(idn)
         self.name = name
         self.description = description
@@ -54,8 +54,9 @@ class Address(RPGObject):
 
     @staticmethod
     def from_json(j):
-        return Address(j['id'], j['name'], j['number'], j['street'],
-                       j['city'], j['country'])
+        return None if j is None else (Address(j['id'], j['name'], j['number'],
+                                               j['street'], j['city'],
+                                               j['country']))
 
 
 class Place(RPGObject):
@@ -74,9 +75,8 @@ class Place(RPGObject):
 
     @staticmethod
     def from_json(j):
-        addr_j = j.get('addr')
-        addr = Address.from_json(addr_j) if addr_j else None
-        return Place(j['pid'], j['name'], j['desc'], addr)
+        return Place(j['pid'], j['name'], j['desc'],
+                     Address.from_json(j.get('addr')))
 
 
 class Exit(RPGObject):
