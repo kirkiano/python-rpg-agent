@@ -25,10 +25,31 @@ class ServerMessage(object):
     @staticmethod
     def _parse_by_tag(j):
         tag = j['tag']
-        if tag == 'SendCredentials':
-            cls = SendCredentials
-        elif tag == 'Welcome':
-            cls = Welcome
+        try:
+            cls = globals()[tag]
+        except KeyError:
+            raise KeyError(f"tag '{tag}' not recognized")
+        return cls.from_json(j['contents'])
+
+
+class EventMessage(ServerMessage):
+    @staticmethod
+    def from_json(j):
+        tag = j['tag']
+        if tag == 'Joined':
+            cls = Joined
+        elif tag == 'ThingEdited':
+            cls = ThingEdited
+        elif tag == 'Looked':
+            cls = Looked
+        elif tag == 'Said':
+            cls = Said
+        elif tag == 'Whispered':
+            cls = Whispered
+        elif tag == 'Entered':
+            cls = Entered
+        elif tag == 'Exited':
+            cls = Exited
         else:
             raise KeyError(f"tag '{tag}' not recognized")
         return cls.from_json(j.get('contents'))
@@ -36,43 +57,30 @@ class ServerMessage(object):
     @staticmethod
     def _parse_by_type(j):
         typ = j['type']
-        if typ == 'joined':
-            cls = Joined
-        elif typ == 'youare':
-            cls = YouAre
-        elif typ == 'thingdescription':
-            cls = ThingDescription
-        elif typ == 'thingedited':
-            cls = ThingEdited
-        elif typ == 'looked':
-            cls = Looked
-        elif typ == 'place':
-            cls = Place
-        elif typ == 'exits':
-            cls = Exits
-        elif typ == 'placecontents':
-            cls = PlaceContents
-        elif typ == 'said':
-            cls = Said
-        elif typ == 'whispered':
-            cls = Whispered
-        elif typ == 'entered':
-            cls = Entered
-        elif typ == 'exited':
-            cls = Exited
-        else:
-            raise KeyError(f"type '{typ}' not recognized")
-        return cls.from_json(j['value'])
+        raise KeyError(f"type '{typ}' not recognized")
+        # return cls.from_json(j['value'])
 
 
-class SendCredentials(ServerMessage):
-
+class ValueMessage(ServerMessage):
     @staticmethod
-    def from_json(_):  # arg should be None
-        return SendCredentials()
+    def from_json(j):
+        tag = j['tag']
+        if tag == 'YouAre':
+            cls = YouAre
+        elif tag == 'ThingDescription':
+            cls = ThingDescription
+        elif tag == 'Place':
+            cls = Place
+        elif tag == 'Exits':
+            cls = Exits
+        elif tag == 'PlaceContents':
+            cls = PlaceContents
+        else:
+            raise KeyError(f"tag '{tag}' not recognized")
+        return cls.from_json(j.get('contents'))
 
 
-class Welcome(ServerMessage):
+class Welcome(ValueMessage):
     def __init__(self, idn):
         self.id = idn
 
@@ -81,7 +89,7 @@ class Welcome(ServerMessage):
         return Welcome(j)
 
 
-class YouAre(ServerMessage):
+class YouAre(ValueMessage):
 
     def __init__(self, thing):
         """
@@ -92,11 +100,10 @@ class YouAre(ServerMessage):
 
     @staticmethod
     def from_json(j):
-        thing = Thing.from_json(j)
-        return YouAre(thing)
+        return YouAre(Thing.from_json(j))
 
 
-class ThingDescription(ServerMessage):
+class ThingDescription(ValueMessage):
     """
     The description of some Thing
     """
@@ -111,10 +118,10 @@ class ThingDescription(ServerMessage):
 
     @staticmethod
     def from_json(j):
-        return ThingDescription(j['tid'], j['dsc'])
+        return ThingDescription(*j)
 
 
-class ThingEdited(ServerMessage):
+class ThingEdited(EventMessage):
     """
     A Thing has been edited (so you may want to request its description).
     """
@@ -130,7 +137,7 @@ class ThingEdited(ServerMessage):
         return ThingEdited(j)
 
 
-class Looked(ServerMessage):
+class Looked(EventMessage):
     """
     A character has looked at some thing or other character.
     """
@@ -145,10 +152,10 @@ class Looked(ServerMessage):
 
     @staticmethod
     def from_json(j):
-        return Looked(j['looker'], j['lookee'])
+        return Looked(*j)
 
 
-class Place(ServerMessage):
+class Place(ValueMessage):
     """
     Information about the place the player is currently in.
     """
@@ -164,7 +171,7 @@ class Place(ServerMessage):
         return Place(PlaceModel.from_json(j))
 
 
-class Exits(ServerMessage):
+class Exits(ValueMessage):
     """
     Information about the exits available from the current place.
     """
@@ -180,7 +187,7 @@ class Exits(ServerMessage):
         return Exits([Exit.from_json(e) for e in j])
 
 
-class PlaceContents(ServerMessage):
+class PlaceContents(ValueMessage):
     """
     Information about what things, including characters, are
     in the current place.
@@ -197,7 +204,7 @@ class PlaceContents(ServerMessage):
         return PlaceContents([Thing.from_json(e) for e in j])
 
 
-class Said(ServerMessage):
+class Said(EventMessage):
     """
     A character in the current place said something.
     """
@@ -207,10 +214,10 @@ class Said(ServerMessage):
 
     @staticmethod
     def from_json(j):
-        return Said(j['speaker'], j['speech'])
+        return Said(*j)
 
 
-class Whispered(ServerMessage):
+class Whispered(EventMessage):
     """
     A character in the current place whispered something to a thing or other
     character.
@@ -222,35 +229,34 @@ class Whispered(ServerMessage):
 
     @staticmethod
     def from_json(j):
+        return Whispered(*j)
 
-        return Whispered(j['from'], j['to'], j['speech'])
 
-
-class Entered(ServerMessage):
+class Entered(EventMessage):
     """
     A character has just entered the current place through one of the exits.
     """
-    def __init__(self, exit_name, thing, nbr_name, direction):
+    def __init__(self, thing, exit_name, nbr_name, direction):
         """
         Args:
-            exit_name (str):
             thing (Thing): actually contains only the name and id
+            exit_name (str):
             nbr_name (str): name of the place from which the character entered
             direction (Direction):
         """
-        self.exit_name = exit_name
         self.thing = thing
+        self.exit_name = exit_name
         self.nbr_name = nbr_name
         self.direction = direction
 
     @staticmethod
     def from_json(j):
-        thing = Thing(j['tid'], j['tname'])
-        direction = getattr(Direction, j['dxn'].upper())
-        return Entered(j['ename'], thing, j['nbr'], direction)
+        thing = Thing.from_json(j[1])
+        direction = getattr(Direction, j[3].upper())
+        return Entered(thing, j[0], j[2], direction)
 
 
-class Exited(ServerMessage):
+class Exited(EventMessage):
     """
     A character has just left the current place through one of the exits.
     """
@@ -265,10 +271,10 @@ class Exited(ServerMessage):
 
     @staticmethod
     def from_json(j):
-        return Exited(j['eid'], j['tid'])
+        return Exited(j[0], Thing.from_json([j[1]]))
 
 
-class Joined(ServerMessage):
+class Joined(EventMessage):
     """
     A character has joined the game.
     """
@@ -281,11 +287,10 @@ class Joined(ServerMessage):
 
     @staticmethod
     def from_json(j):
-        thing = Thing.from_json(j['value'])
-        return Joined(thing)
+        return Joined(Thing.from_json(j))
 
 
-class Disjoined(ServerMessage):
+class Disjoined(EventMessage):
     """
     A character has left the game.
     """
@@ -298,4 +303,4 @@ class Disjoined(ServerMessage):
 
     @staticmethod
     def from_json(j):
-        return Disjoined(j['tid'])
+        return Disjoined(j)

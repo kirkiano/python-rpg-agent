@@ -1,5 +1,6 @@
 import argparse
 import asyncio
+import os
 
 from bot.connect import Connection
 from scrape import scrapers

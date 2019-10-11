@@ -2,7 +2,7 @@ import asyncio
 import json
 from collections import namedtuple
 
-from common.server_message import ServerMessage, Welcome, SendCredentials
+from common.server_message import ServerMessage, Welcome
 from common.request import (
     WhoAmI, WhereAmI, WhatIsHere, WaysOut, TakeExit, Say, Whisper,
     DescribeThing, EditMe
@@ -53,7 +53,6 @@ class Connection(object):
         self.writer.close()
 
     async def authenticate(self, credentials):
-        await self.wait_for(SendCredentials)
         await self._send_dict({
             'type': 'login',
             'creds': {'user': credentials.user,
@@ -65,34 +64,11 @@ class Connection(object):
         self.credentials = credentials
 
     @asyncio.coroutine
-    def _send_dict(self, dct):
-        """
-        Asynchronously send a dictionary to the RPG server. This method
-        is used by other methods below and should not be used directly.
-
-        Args:
-            dct (dict):
-        """
-        request = json.dumps(dct) + '\n'
-        self.writer.write(request.encode('utf-8'))
-        yield from self.writer.drain()
-
-    @asyncio.coroutine
-    def _send_request(self, request):
-        """
-        Asynchronously send a request to the RPG server. This method
-        is used by other methods below and should not be used directly.
-
-        Args:
-            request (Request):
-        """
-        yield from self._send_dict(request.to_dict())
-
-    @asyncio.coroutine
     def recv_message(self):
         while True:
             try:
                 line = yield from self.reader.readline()
+                # print(f'Received line: {line}')
                 j = json.loads(line.decode('utf-8'))
                 msg = ServerMessage.from_json(j)
                 return msg
@@ -150,3 +126,31 @@ class Connection(object):
     @asyncio.coroutine
     def whisper(self, speech, tid):
         yield from self._send_request(Whisper(speech, tid))
+
+    #######################################################
+
+    @asyncio.coroutine
+    def _send_request(self, request):
+        """
+        Asynchronously send a request to the RPG server. This method
+        is used by other methods and should not be used directly.
+
+        Args:
+            request (Request):
+        """
+        yield from self._send_dict(request.to_dict())
+
+    @asyncio.coroutine
+    def _send_dict(self, request):
+        """
+        Asynchronously send a dictionary to the RPG server. This method
+        is used by other methods and should not be used directly.
+
+        Args:
+            request (dict):
+        """
+        request_json = json.dumps(request)
+        # print(f'About to send {request_json} (with newline)...', end='')
+        self.writer.write((request_json + '\n').encode('utf-8'))
+        yield from self.writer.drain()
+        # print('DONE')

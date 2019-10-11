@@ -31,8 +31,18 @@ class Thing(RPGObject):
 
     @staticmethod
     def from_json(j):
-        tid = j.get('id', j.get('tid'))
-        return Thing(tid, j['name'], j.get('desc'), j.get('awake'))
+        f = Thing.from_list if isinstance(j, list) else Thing.from_object
+        return f(j)
+
+    @staticmethod
+    def from_list(j):
+        return Thing(j[0],
+                     j[1] if len(j) > 1 else None,
+                     j[2] if len(j) > 2 else None)
+
+    @staticmethod
+    def from_object(j):
+        return Thing(j['thingId'], j.get('thingName'), j.get('thingDesc'))
 
 
 class Address(RPGObject):
@@ -54,9 +64,8 @@ class Address(RPGObject):
 
     @staticmethod
     def from_json(j):
-        return None if j is None else (Address(j['id'], j['name'], j['number'],
-                                               j['street'], j['city'],
-                                               j['country']))
+        # ignore element 0 (address ID)
+        return None if j is None else (Address(*j))
 
 
 class Place(RPGObject):
@@ -75,19 +84,19 @@ class Place(RPGObject):
 
     @staticmethod
     def from_json(j):
-        return Place(j['pid'], j['name'], j['desc'],
-                     Address.from_json(j.get('addr')))
+        return Place(j['placeID'], j['placeName'], j['placeDesc'],
+                     Address.from_json(j.get('address')))
 
 
 class Exit(RPGObject):
-    def __init__(self, eid, name, dxn, trans, nbr):
+    def __init__(self, eid, name, dxn, nbr, trans=True):
         """
         Args:
             eid (int):
             name (str):
             dxn (Direction):
-            trans (bool):
             nbr (int, str, Address): reduced Place (id, name, and address)
+            trans (bool):
         """
         super(Exit, self).__init__(eid)
         self.name = name
@@ -99,8 +108,8 @@ class Exit(RPGObject):
 
     @staticmethod
     def from_json(j):
-        dxn = getattr(Direction, j['dir'].upper())
-        dst = j['dst']
-        addr = Address.from_json(dst[2]) if dst[2] else None
+        dxn = getattr(Direction, j['exitDirection'].upper())
+        dst = j['exitDestination']
+        addr = Address.from_json(dst[2]) if len(dst) > 2 else None
         nbr = (dst[0], dst[1], addr)
-        return Exit(j['eid'], j['name'], dxn, j['trans'], nbr)
+        return Exit(j['exitID'], j['exitName'], dxn, nbr)

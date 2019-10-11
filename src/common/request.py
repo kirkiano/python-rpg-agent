@@ -12,25 +12,25 @@ class Request(object):
 class WhoAmI(Request):
 
     def to_dict(self):
-        return dict(type='whoami')
+        return dict(tag='WhoAmI')
 
 
 class WhereAmI(Request):
 
     def to_dict(self):
-        return dict(type='whereami')
+        return dict(tag='WhereAmI')
 
 
 class WhatIsHere(Request):
 
     def to_dict(self):
-        return dict(type='whatishere')
+        return dict(tag='WhatIsHere')
 
 
 class WaysOut(Request):
 
     def to_dict(self):
-        return dict(type='waysout')
+        return dict(tag='WaysOut')
 
 
 class EditMe(Request):
@@ -42,7 +42,7 @@ class EditMe(Request):
         self.new_description = new_description
 
     def to_dict(self):
-        return dict(type='editme', desc=self.new_description)
+        return dict(tag='EditMe', contents=self.new_description)
 
 
 class DescribeThing(Request):
@@ -54,7 +54,7 @@ class DescribeThing(Request):
         self.thing_id = thing_id
 
     def to_dict(self):
-        return dict(type='describething', desc=self.thing_id)
+        return dict(tag='DescribeThing', contents=self.thing_id)
 
 
 class TakeExit(Request):
@@ -66,7 +66,7 @@ class TakeExit(Request):
         self.exit_id = exit_id
 
     def to_dict(self):
-        return dict(type='exit', eid=self.exit_id)
+        return dict(tag='Exit', contents=self.exit_id)
 
 
 class Say(Request):
@@ -78,7 +78,7 @@ class Say(Request):
         self.speech = speech
 
     def to_dict(self):
-        return dict(type='say', value=self.speech)
+        return dict(tag='Say', contents=self.speech)
 
 
 class Whisper(Request):
@@ -92,4 +92,4 @@ class Whisper(Request):
         self.to_id = to_id
 
     def to_dict(self):
-        return dict(type='say', value=self.speech, to=self.to_id)
+        return dict(tag='Whisper', contents=[self.speech, self.to_id])
