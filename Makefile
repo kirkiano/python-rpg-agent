@@ -1,10 +1,10 @@
 
 .PHONY: test doc
 
-run:
+run: port botfile
 	python src/main.py $(PORT) $(BOTFILE)
 
-debug:
+debug: port botfile
 	python src/main.py $(PORT) $(BOTFILE) -v
 
 test:
@@ -13,10 +13,12 @@ test:
 doc:
 	$(MAKE) -C sphinx html
 
+port:
 ifndef PORT
 	error(PORT is undefined)
 endif
 
+botfile:
 ifndef BOTFILE
 	error(BOTFILE is undefined)
 endif
