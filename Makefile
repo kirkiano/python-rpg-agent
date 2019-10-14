@@ -5,7 +5,7 @@ run: port botfile
 	python src/main.py $(PORT) $(BOTFILE)
 
 debug: port botfile
-	python src/main.py $(PORT) $(BOTFILE) -v
+	python src/main.py $(PORT) $(BOTFILE) -v --waitleave 30
 
 test:
 	python -m unittest test
