@@ -151,6 +151,6 @@ class Connection(object):
         """
         request_json = json.dumps(request)
         # print(f'About to send {request_json} (with newline)...', end='')
-        self.writer.write((request_json + '\n').encode('utf-8'))
+        self.writer.write((request_json + '\r\n').encode('utf-8'))
         yield from self.writer.drain()
         # print('DONE')
