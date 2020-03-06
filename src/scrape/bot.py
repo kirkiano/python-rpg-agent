@@ -4,7 +4,7 @@ import random
 from collections import defaultdict, namedtuple
 
 from bot.base import Bot
-from common.server_message import Place
+from common.server_message import Place, WaysOut
 
 
 class ScrapingBot(Bot):
@@ -37,8 +37,9 @@ class ScrapingBot(Bot):
         self.headlines = []
         self.seen = defaultdict(set)
         self.place = None
+        self.exits = []
         self.is_good_exit = lambda e: (
-            e.nbr_addr and e.nbr_addr.name.lower() == address_name.lower()
+            e.nbr.address and e.nbr.address.name.lower() == address_name.lower()
         )
         # set time of last download far enough in the
         # past to trigger a fresh download
@@ -56,8 +57,10 @@ class ScrapingBot(Bot):
     async def _run_iteration(self):
         await self.conn.where_am_i()
         self.place = (await self.conn.wait_for(Place)).place
+        await self.conn.how_can_i_exit()
+        self.exits = (await self.conn.wait_for(WaysOut)).exits
         if self.verbose:
-            print(f'{self.conn.user} is now in {self.place.name}.')
+            print(f'{self.conn.user} is now in {self.place}.')
         await self._maybe_scrape()
         await asyncio.sleep(3)  # wait a couple of seconds before speaking
         await self._speak_headlines()

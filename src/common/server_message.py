@@ -1,4 +1,4 @@
-from .rpg_object import Thing, Exit, Direction, Place as PlaceModel
+from .rpg_object import Char, Thing, Exit, Direction, Place as PlaceModel
 
 
 class ServerMessage(object):
@@ -29,7 +29,7 @@ class ServerMessage(object):
             cls = globals()[tag]
         except KeyError:
             raise KeyError(f"tag '{tag}' not recognized")
-        return cls.from_json(j['contents'])
+        return cls.from_json(j)
 
 
 class EventMessage(ServerMessage):
@@ -52,7 +52,7 @@ class EventMessage(ServerMessage):
             cls = Exited
         else:
             raise KeyError(f"tag '{tag}' not recognized")
-        return cls.from_json(j.get('contents'))
+        return cls.from_json(j)
 
     @staticmethod
     def _parse_by_type(j):
@@ -71,13 +71,15 @@ class ValueMessage(ServerMessage):
             cls = ThingDescription
         elif tag == 'Place':
             cls = Place
-        elif tag == 'Exits':
-            cls = Exits
-        elif tag == 'PlaceContents':
-            cls = PlaceContents
+        elif tag == 'WaysOut':
+            cls = WaysOut
+        elif tag == 'Contents':
+            cls = Contents
+        elif tag == 'Occupants':
+            cls = Occupants
         else:
             raise KeyError(f"tag '{tag}' not recognized")
-        return cls.from_json(j.get('contents'))
+        return cls.from_json(j)
 
 
 class Welcome(ValueMessage):
@@ -91,16 +93,17 @@ class Welcome(ValueMessage):
 
 class YouAre(ValueMessage):
 
-    def __init__(self, thing):
+    def __init__(self, char, desc):
         """
         Args:
-            thing (json): should be a full Thing, including description
+            char (json): a Char
         """
-        self.thing = thing
+        self.char = char
+        self.desc = desc
 
     @staticmethod
     def from_json(j):
-        return YouAre(Thing.from_json(j))
+        return YouAre(Char.from_json(j, logged_in=True), j['desc'])
 
 
 class ThingDescription(ValueMessage):
@@ -168,10 +171,10 @@ class Place(ValueMessage):
 
     @staticmethod
     def from_json(j):
-        return Place(PlaceModel.from_json(j))
+        return Place(PlaceModel.from_json(j['place']))
 
 
-class Exits(ValueMessage):
+class WaysOut(ValueMessage):
     """
     Information about the exits available from the current place.
     """
@@ -184,37 +187,52 @@ class Exits(ValueMessage):
 
     @staticmethod
     def from_json(j):
-        return Exits([Exit.from_json(e) for e in j])
+        return WaysOut([Exit.from_json(e) for e in j['exits']])
 
 
-class PlaceContents(ValueMessage):
+class Contents(ValueMessage):
     """
-    Information about what things, including characters, are
-    in the current place.
+    Information about what things are in the current place.
     """
     def __init__(self, things):
         """
         Args:
-            things (list of Thing): names and IDs only.
+            things (list of Thing):
         """
         self.things = things
 
     @staticmethod
     def from_json(j):
-        return PlaceContents([Thing.from_json(e) for e in j])
+        return Contents([Thing.from_json(e) for e in j['things']])
+
+
+class Occupants(ValueMessage):
+    """
+    Information about what characters are in the current place.
+    """
+    def __init__(self, chars):
+        """
+        Args:
+            chars (list of Char):
+        """
+        self.chars = chars
+
+    @staticmethod
+    def from_json(j):
+        return Contents([Char.from_json(e) for e in j['chars']])
 
 
 class Said(EventMessage):
     """
     A character in the current place said something.
     """
-    def __init__(self, thing_id, speech):
-        self.things = thing_id
+    def __init__(self, char_id, speech):
+        self.char_id = char_id
         self.speech = speech
 
     @staticmethod
     def from_json(j):
-        return Said(*j)
+        return Said(char_id=j['cid'], speech=j['speech'])
 
 
 class Whispered(EventMessage):
@@ -232,62 +250,60 @@ class Whispered(EventMessage):
         return Whispered(*j)
 
 
-class Entered(EventMessage):
+class Motion(EventMessage):
     """
-    A character has just entered the current place through one of the exits.
+    A character has just entered or exited the current place.
     """
-    def __init__(self, thing, exit_name, nbr_name, direction):
+    def __init__(self, name, char_id, exit_id):
         """
         Args:
-            thing (Thing): actually contains only the name and id
-            exit_name (str):
-            nbr_name (str): name of the place from which the character entered
-            direction (Direction):
+            char_id (int): id of character
+            name (str): character who walked in
+            exit_id (int): id of exit through which the character moved
         """
-        self.thing = thing
-        self.exit_name = exit_name
-        self.nbr_name = nbr_name
-        self.direction = direction
-
-    @staticmethod
-    def from_json(j):
-        thing = Thing.from_json(j[1])
-        direction = getattr(Direction, j[3].upper())
-        return Entered(thing, j[0], j[2], direction)
-
-
-class Exited(EventMessage):
-    """
-    A character has just left the current place through one of the exits.
-    """
-    def __init__(self, exit_id, thing_id):
-        """
-        Args:
-            exit_id (int):
-            thing_id (int):
-        """
+        self.name = name
+        self.char_id = char_id
         self.exit_id = exit_id
-        self.thing_id = thing_id
+
+
+class Entered(Motion):
+    def __init__(self, name, char_id, exit_id):
+        """
+        See Motion's __init__
+        """
+        super(Entered, self).__init__(name, char_id, exit_id)
 
     @staticmethod
     def from_json(j):
-        return Exited(j[0], Thing.from_json([j[1]]))
+        return Entered(j['name'], j['cid'], j['eid'])
+
+
+class Exited(Motion):
+    def __init__(self, name, char_id, exit_id):
+        """
+        See Motion's __init__
+        """
+        super(Exited, self).__init__(name, char_id, exit_id)
+
+    @staticmethod
+    def from_json(j):
+        return Exited(j['name'], j['cid'], j['eid'])
 
 
 class Joined(EventMessage):
     """
     A character has joined the game.
     """
-    def __init__(self, thing):
+    def __init__(self, char):
         """
         Args:
-            thing (Thing): name and ID only
+            char (Char): name and ID only
         """
-        self.thing = thing
+        self.char = char
 
     @staticmethod
     def from_json(j):
-        return Joined(Thing.from_json(j))
+        return Joined(Char.from_json(j, logged_in=True))
 
 
 class Disjoined(EventMessage):

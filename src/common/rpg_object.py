@@ -4,9 +4,34 @@ from enum import Enum
 
 Direction = Enum('Direction',
                  """
-                 NORTH EAST SOUTH WEST
+                 UP DOWN NORTH EAST SOUTH WEST
                  NORTHEAST NORTHWEST SOUTHEAST SOUTHWEST
                  """)
+
+
+def code2dxn(code):
+    if code == 'u':
+        return Direction.UP
+    elif code == 'd':
+        return Direction.DOWN
+    elif code == 'n':
+        return Direction.NORTH
+    elif code == 's':
+        return Direction.SOUTH
+    elif code == 'e':
+        return Direction.EAST
+    elif code == 'w':
+        return Direction.WEST
+    elif code == 'ne':
+        return Direction.NORTHEAST
+    elif code == 'nw':
+        return Direction.NORTHWEST
+    elif code == 'se':
+        return Direction.SOUTHEAST
+    elif code == 'sw':
+        return Direction.SOUTHWEST
+    else:
+        raise Exception(f'Unknown Direction code: {code}')
 
 
 class RPGObject(ABC):
@@ -22,27 +47,28 @@ class RPGObject(ABC):
         self.id = idn
 
 
+class Char(RPGObject):
+    def __init__(self, cid, name, logged_in):
+        super(Char, self).__init__(cid)
+        self.name = name
+        self.logged_in = logged_in
+
+    @staticmethod
+    def from_json(j, logged_in=None):
+        idn = j['id'] if 'id' in j else j['cid']
+        logged_in = j['loggedIn'] if 'loggedIn' in j else logged_in
+        return Char(idn, j['name'], logged_in)
+
+
 class Thing(RPGObject):
-    def __init__(self, idn, name=None, description=None, awake=None):
+    def __init__(self, idn, name, serial_number):
         super(Thing, self).__init__(idn)
         self.name = name
-        self.description = description
-        self.awake = awake
+        self.serial_number = serial_number
 
     @staticmethod
     def from_json(j):
-        f = Thing.from_list if isinstance(j, list) else Thing.from_object
-        return f(j)
-
-    @staticmethod
-    def from_list(j):
-        return Thing(j[0],
-                     j[1] if len(j) > 1 else None,
-                     j[2] if len(j) > 2 else None)
-
-    @staticmethod
-    def from_object(j):
-        return Thing(j['thingId'], j.get('thingName'), j.get('thingDesc'))
+        return Thing(j['id'], j['name'], j['serial'])
 
 
 class Address(RPGObject):
@@ -65,7 +91,14 @@ class Address(RPGObject):
     @staticmethod
     def from_json(j):
         # ignore element 0 (address ID)
-        return None if j is None else (Address(*j))
+        return None if j is None else Address(
+            idn=j['id'],
+            name=j['name'],
+            street_number=j['num'],
+            street_name=j['street']['name'],
+            city=j['street']['city']['name'],
+            country=j['street']['city']['country']['name']
+        )
 
 
 class Place(RPGObject):
@@ -84,32 +117,30 @@ class Place(RPGObject):
 
     @staticmethod
     def from_json(j):
-        return Place(j['placeID'], j['placeName'], j['placeDesc'],
-                     Address.from_json(j.get('address')))
+        return Place(j['id'], j['name'], j['desc'],
+                     Address.from_json(j.get('addr')))
+
+    def __str__(self):
+        return self.name + \
+               ((', ' + self.address.name) if self.address else '')
 
 
 class Exit(RPGObject):
-    def __init__(self, eid, name, dxn, nbr, trans=True):
+    def __init__(self, eid, dxn, port, nbr):
         """
         Args:
             eid (int):
-            name (str):
             dxn (Direction):
-            nbr (int, str, Address): reduced Place (id, name, and address)
-            trans (bool):
+            port (str): the (conceptual) portal
+            nbr (Place):
         """
         super(Exit, self).__init__(eid)
-        self.name = name
         self.dir = dxn
-        self.trans = trans
-        self.nbr_id = nbr[0]
-        self.nbr_name = nbr[1]
-        self.nbr_addr = nbr[2] if nbr[2] else None
+        self.nbr = nbr
+        self.port = port
 
     @staticmethod
     def from_json(j):
-        dxn = getattr(Direction, j['exitDirection'].upper())
-        dst = j['exitDestination']
-        addr = Address.from_json(dst[2]) if len(dst) > 2 else None
-        nbr = (dst[0], dst[1], addr)
-        return Exit(j['exitID'], j['exitName'], dxn, nbr)
+        dxn = code2dxn(j['dir'])
+        nbr = Place.from_json(j['nbr'])
+        return Exit(j['id'], dxn, j['port'], nbr)

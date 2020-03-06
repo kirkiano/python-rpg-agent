@@ -2,11 +2,10 @@ import asyncio
 import json
 from collections import namedtuple
 
-from common.server_message import ServerMessage, Welcome
-from common.request import (
-    WhoAmI, WhereAmI, WhatIsHere, WaysOut, TakeExit, Say, Whisper,
-    DescribeThing, EditMe
-)
+from common.server_message import ServerMessage, Joined
+from common.request import (TakeExit, Say, WhereAmI, HowCanIExit)
+    # WhoAmI, WhatIsHere,  Whisper,
+    # DescribeThing, EditMe
 
 
 class Connection(object):
@@ -59,7 +58,7 @@ class Connection(object):
                       'pass': credentials.pw}
         })
         resp = await self.recv_message()
-        if not isinstance(resp, Welcome):
+        if not isinstance(resp, Joined):
             raise Connection.CannotAuthenticate()
         self.credentials = credentials
 
@@ -91,29 +90,29 @@ class Connection(object):
     #######################################################
     # requests
 
-    @asyncio.coroutine
-    def who_am_i(self):
-        yield from self._send_request(WhoAmI())
+    # @asyncio.coroutine
+    # def who_am_i(self):
+    #     yield from self._send_request(WhoAmI())
 
     @asyncio.coroutine
     def where_am_i(self):
         yield from self._send_request(WhereAmI())
 
-    @asyncio.coroutine
-    def what_is_here(self):
-        yield from self._send_request(WhatIsHere())
+    # @asyncio.coroutine
+    # def what_is_here(self):
+    #     yield from self._send_request(WhatIsHere())
 
     @asyncio.coroutine
-    def ways_out(self):
-        yield from self._send_request(WaysOut())
+    def how_can_i_exit(self):
+        yield from self._send_request(HowCanIExit())
 
-    @asyncio.coroutine
-    def edit_me(self, desc):
-        yield from self._send_request(EditMe(desc))
-
-    @asyncio.coroutine
-    def describe_thing(self, tid):
-        yield from self._send_request(DescribeThing(tid))
+    # @asyncio.coroutine
+    # def edit_me(self, desc):
+    #     yield from self._send_request(EditMe(desc))
+    #
+    # @asyncio.coroutine
+    # def describe_thing(self, tid):
+    #     yield from self._send_request(DescribeThing(tid))
 
     @asyncio.coroutine
     def take_exit(self, eid):
@@ -123,10 +122,10 @@ class Connection(object):
     def say(self, speech):
         yield from self._send_request(Say(speech))
 
-    @asyncio.coroutine
-    def whisper(self, speech, tid):
-        yield from self._send_request(Whisper(speech, tid))
-
+    # @asyncio.coroutine
+    # def whisper(self, speech, tid):
+    #     yield from self._send_request(Whisper(speech, tid))
+    #
     #######################################################
 
     @asyncio.coroutine

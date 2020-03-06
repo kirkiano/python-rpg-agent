@@ -3,7 +3,7 @@ from abc import ABCMeta, abstractmethod
 from traceback import print_exc
 
 from .connect import Connection
-from common.server_message import Exits
+from common.server_message import WaysOut
 
 
 class Bot(object):
@@ -23,6 +23,7 @@ class Bot(object):
         self.credentials = credentials
         self.ioloop = ioloop
         self.verbose = verbose
+        self.exits = []
         self.conn = None
 
     @property
@@ -63,9 +64,7 @@ class Bot(object):
         Leave the current place by an exit chosen at random, as long as
         the exit satisfies is_good_exit.
         """
-        await self.conn.ways_out()
-        exits = (await self.conn.wait_for(Exits)).exits
-        valid_exit_ids = [e.id for e in exits if is_good_exit(e)]
+        valid_exit_ids = [e.id for e in self.exits if is_good_exit(e)]
         if valid_exit_ids:
             chosen_exit = random.choice(valid_exit_ids)
             await self.conn.take_exit(chosen_exit)
