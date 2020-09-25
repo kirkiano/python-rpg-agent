@@ -1,4 +1,4 @@
-from .rpg_object import Char, Thing, Exit, Direction, Place as PlaceModel
+from .rpg_object import Char, Thing, Exit, Place as PlaceModel
 
 
 class ServerMessage(object):
@@ -15,7 +15,7 @@ class ServerMessage(object):
         try:
             return ServerMessage._parse_json(j)
         except KeyError as e:
-            raise ServerMessage.CannotParse(j, e)
+            print(ServerMessage.CannotParse(j, e))
 
     @staticmethod
     def _parse_json(j):
@@ -171,7 +171,7 @@ class Place(ValueMessage):
 
     @staticmethod
     def from_json(j):
-        return Place(PlaceModel.from_json(j['place']))
+        return Place(PlaceModel.from_json(j))
 
 
 class WaysOut(ValueMessage):
@@ -275,7 +275,7 @@ class Entered(Motion):
 
     @staticmethod
     def from_json(j):
-        return Entered(j['name'], j['cid'], j['eid'])
+        return Entered(j['name'], j['id'], j['eid'])
 
 
 class Exited(Motion):
@@ -287,7 +287,7 @@ class Exited(Motion):
 
     @staticmethod
     def from_json(j):
-        return Exited(j['name'], j['cid'], j['eid'])
+        return Exited(j['name'], j['id'], j['eid'])
 
 
 class Joined(EventMessage):

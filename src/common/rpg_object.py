@@ -90,14 +90,21 @@ class Address(RPGObject):
 
     @staticmethod
     def from_json(j):
-        # ignore element 0 (address ID)
+        if j is None:
+            return None
+
+        street = j['street']['name'] if 'street' in j else None
+        city = j['street']['city']['name'] if 'street' in j else None
+        country = j['street']['city']['country']['name']\
+            if 'street' in j else None
+
         return None if j is None else Address(
             idn=j['id'],
             name=j['name'],
-            street_number=j['num'],
-            street_name=j['street']['name'],
-            city=j['street']['city']['name'],
-            country=j['street']['city']['country']['name']
+            street_number=j.get('num'),
+            street_name=street,
+            city=city,
+            country=country
         )
 
 
@@ -117,7 +124,7 @@ class Place(RPGObject):
 
     @staticmethod
     def from_json(j):
-        return Place(j['id'], j['name'], j['desc'],
+        return Place(j['id'], j['name'], j.get('desc'),
                      Address.from_json(j.get('addr')))
 
     def __str__(self):
