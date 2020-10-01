@@ -10,6 +10,9 @@ class Bot(object):
     """Abstract class implementing a bot."""
     __metaclass__ = ABCMeta
 
+    class NoExit(Exception):
+        pass
+
     def __init__(self, server, credentials, ioloop, verbose=False):
         """
         Args:
@@ -34,10 +37,9 @@ class Bot(object):
         return bool(self.conn)
 
     async def connect(self):
-        self.conn = await Connection.login(
-            server=self.server,
-            credentials=self.credentials,
-            ioloop=self.ioloop)
+        self.conn = await Connection.login(server=self.server,
+                                           credentials=self.credentials,
+                                           ioloop=self.ioloop)
         if self.verbose:
             print(f'{self.name} has connected to the RPG server.')
 
@@ -68,3 +70,5 @@ class Bot(object):
         if valid_exit_ids:
             chosen_exit = random.choice(valid_exit_ids)
             await self.conn.take_exit(chosen_exit)
+        else:
+            raise Bot.NoExit()

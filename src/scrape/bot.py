@@ -13,6 +13,15 @@ class ScrapingBot(Bot):
     # see parse_args for meanings of these params
     Params = namedtuple('Params', 'ntitles, waitleave, waitdl')
 
+    class NotHome(Exception):
+        def __init__(self, address_exp, address_act):
+            self.address_exp = address_exp
+            self.address_act = address_act
+
+        def __str__(self):
+            return f'Expected to be at {self.address_exp},' \
+                   f' not {self.address_act.name}.'
+
     def __init__(self, server, credentials, ioloop, download_func, params,
                  address_name, do_shuffle=True, verbose=False):
         """
@@ -38,9 +47,9 @@ class ScrapingBot(Bot):
         self.seen = defaultdict(set)
         self.place = None
         self.exits = []
-        self.is_good_exit = lambda e: (
-            e.nbr.address and e.nbr.address.name.lower() == address_name.lower()
-        )
+        self.home_address = address_name
+        self.is_home = lambda a: a and a.name.lower() == address_name.lower()
+        self.is_good_exit = lambda e: self.is_home(e.nbr.address)
         # set time of last download far enough in the
         # past to trigger a fresh download
         long_interval = datetime.timedelta(minutes=1 + params.waitdl)
@@ -55,17 +64,16 @@ class ScrapingBot(Bot):
             await self._run_iteration()
 
     async def _run_iteration(self):
-        await self.conn.where_am_i()
         self.place = (await self.conn.wait_for(Place)).place
-        await self.conn.how_can_i_exit()
+        if not self.is_home(self.place.address):
+            raise ScrapingBot.NotHome(self.home_address, self.place.address)
         self.exits = (await self.conn.wait_for(WaysOut)).exits
         if self.verbose:
             print(f'{self.conn.user} is now in {self.place}.')
         await self._maybe_scrape()
-        await asyncio.sleep(3)  # wait a couple of seconds before speaking
         await self._speak_headlines()
-        wait_to_move = random.uniform(0, self.params.waitleave)
-        await asyncio.sleep(wait_to_move)
+        waiting_period = random.uniform(0, self.params.waitleave)
+        await asyncio.sleep(waiting_period)
         await self.take_random_exit(self.is_good_exit)
 
     async def _maybe_scrape(self):

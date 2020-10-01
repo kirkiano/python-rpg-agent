@@ -2,10 +2,8 @@ import asyncio
 import json
 from collections import namedtuple
 
-from common.server_message import ServerMessage, Joined
-from common.request import (TakeExit, Say, WhereAmI, HowCanIExit)
-    # WhoAmI, WhatIsHere,  Whisper,
-    # DescribeThing, EditMe
+from common.server_message import ServerMessage, Welcome
+from common.request import (TakeExit, Say)
 
 
 class Connection(object):
@@ -44,7 +42,9 @@ class Connection(object):
     @asyncio.coroutine
     def open(self, server):
         self.reader, self.writer = yield from asyncio.open_connection(
-            server.host, server.port, loop=self.ioloop)
+            server.host,
+            server.port,
+            loop=self.ioloop)
         self.server = server
 
     def close(self):
@@ -57,9 +57,7 @@ class Connection(object):
             'creds': {'user': credentials.user,
                       'pass': credentials.pw}
         })
-        resp = await self.recv_message()
-        if not isinstance(resp, Joined):
-            raise Connection.CannotAuthenticate()
+        await self.wait_for(Welcome)
         self.credentials = credentials
 
     @asyncio.coroutine
@@ -94,17 +92,17 @@ class Connection(object):
     # def who_am_i(self):
     #     yield from self._send_request(WhoAmI())
 
-    @asyncio.coroutine
-    def where_am_i(self):
-        yield from self._send_request(WhereAmI())
+    # @asyncio.coroutine
+    # def where_am_i(self):
+    #    yield from self._send_request(WhereAmI())
 
     # @asyncio.coroutine
     # def what_is_here(self):
     #     yield from self._send_request(WhatIsHere())
 
-    @asyncio.coroutine
-    def how_can_i_exit(self):
-        yield from self._send_request(HowCanIExit())
+    # @asyncio.coroutine
+    # def how_can_i_exit(self):
+    #    yield from self._send_request(HowCanIExit())
 
     # @asyncio.coroutine
     # def edit_me(self, desc):

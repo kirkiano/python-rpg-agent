@@ -9,16 +9,40 @@ class Request(object):
         pass
 
 
+class TakeExit(Request):
+    def __init__(self, exit_id):
+        """
+        Args:
+            exit_id (int):
+        """
+        self.exit_id = exit_id
+
+    def to_dict(self):
+        return dict(tag='Exit', eid=self.exit_id, details=True)
+
+
+class Say(Request):
+    def __init__(self, speech):
+        """
+        Args:
+            speech (str):
+        """
+        self.speech = speech
+
+    def to_dict(self):
+        return dict(tag='Say', speech=self.speech)
+
+
 # class WhoAmI(Request):
 #
 #     def to_dict(self):
 #         return dict(tag='WhoAmI')
 
 
-class WhereAmI(Request):
-
-    def to_dict(self):
-        return dict(tag='WhereAmI')
+# class WhereAmI(Request):
+#
+#     def to_dict(self):
+#         return dict(tag='WhereAmI')
 
 
 # class WhatIsHere(Request):
@@ -27,10 +51,10 @@ class WhereAmI(Request):
 #         return dict(tag='WhatIsHere')
 
 
-class HowCanIExit(Request):
-
-    def to_dict(self):
-        return dict(tag='HowCanIExit')
+# class HowCanIExit(Request):
+#
+#     def to_dict(self):
+#         return dict(tag='HowCanIExit')
 
 
 # class EditMe(Request):
@@ -55,31 +79,8 @@ class HowCanIExit(Request):
 #
 #     def to_dict(self):
 #         return dict(tag='DescribeThing', contents=self.thing_id)
-
-
-class TakeExit(Request):
-    def __init__(self, exit_id):
-        """
-        Args:
-            exit_id (int):
-        """
-        self.exit_id = exit_id
-
-    def to_dict(self):
-        return dict(tag='Exit', eid=self.exit_id, details=False)
-
-
-class Say(Request):
-    def __init__(self, speech):
-        """
-        Args:
-            speech (str):
-        """
-        self.speech = speech
-
-    def to_dict(self):
-        return dict(tag='Say', speech=self.speech)
-
+#
+#
 # class Whisper(Request):
 #     def __init__(self, speech, to_id):
 #         """

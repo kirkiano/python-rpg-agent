@@ -114,7 +114,7 @@ class Place(RPGObject):
         Args:
             pid:
             name:
-            desc:
+            desc (str): can be None
             address (Address): can be None
         """
         super(Place, self).__init__(pid)
@@ -139,7 +139,7 @@ class Exit(RPGObject):
             eid (int):
             dxn (Direction):
             port (str): the (conceptual) portal
-            nbr (Place):
+            nbr (Place): the neighboring place, to which this exit leads
         """
         super(Exit, self).__init__(eid)
         self.dir = dxn
