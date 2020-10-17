@@ -18,4 +18,4 @@ RUN pip install -r requirements.txt
 
 COPY . .
 
-CMD python src/main.py $PORT $BOTFILE --host host.docker.internal --waitleave $WAITLEAVE
+CMD python src/main.py $PORT ./botfile --host $HOST -v --waitleave $WAITLEAVE
