@@ -32,7 +32,7 @@ docker_logs:
 	docker logs $(CONTAINER_NAME) -f
 
 docker_bash:
-	docker exec -it $(CONTAINER_NAME) /bin/bash
+	docker exec -it $(CONTAINER_NAME) /bin/sh
 
 docker_clean:
 	docker rm -f $(CONTAINER_NAME) || true

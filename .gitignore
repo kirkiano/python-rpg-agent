@@ -2,5 +2,6 @@
 *.pyc
 sphinx/build
 botfile
+.env
 .envs/*
 !.envs/sample
