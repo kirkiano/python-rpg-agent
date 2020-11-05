@@ -5,4 +5,9 @@
 General documentation for the RPG can be found in the [master
 repo](https://github.com/kirkiano/rpg-docker).
 
-RPG bots that scrape headlines or titles from various periodicals.
+RPG bots that scrape headlines or titles from various periodicals. See the
+Makefile.
+
+## TODO
+
+See the `TODO` file.

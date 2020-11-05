@@ -7,6 +7,12 @@ from scrape.bot import ScrapingBot
 
 
 def parse_args():
+    help_msg = ('text file in which each line has the name of a desired bot,'
+                ' its password, and the name of the address to which it should'
+                ' be confined, all separated by a single space. Any whitespace'
+                ' inside the address name should be limited to one space'
+                ' between its words, and no quote marks should be used to'
+                ' delimit it.')
     parser = argparse.ArgumentParser(description='RPG bot')
     parser.add_argument(
         '--host',
@@ -23,11 +29,7 @@ def parse_args():
     parser.add_argument(
         'botfile',
         metavar='BOTFILE',
-        help=('text file in which each line has the name of a desired bot,'
-              ' its password, and the name of the address to which it should'
-              ' be confined, all separated by a single space. Any whitespace'
-              ' inside the address name should be limited to one space between'
-              ' its words, and no quote marks should be used to delimit it.')
+        help=help_msg
     )
     parser.add_argument(
         '--ntitles',
@@ -85,6 +87,7 @@ def get_bots(ioloop, server, botfile, bot_params, verbose=False):
                            params=bot_params,
                            address_name=address,
                            verbose=verbose)
+
     bot_data = parse_botfile(botfile)
     scrapers_selected = {bn: getattr(scrapers, 'scrape_' + bn)
                          for bn in bot_data}
