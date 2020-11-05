@@ -1,9 +1,9 @@
 import random
 from abc import ABCMeta, abstractmethod
 from traceback import print_exc
+import asyncio
 
 from .connect import Connection
-from common.server_message import WaysOut
 
 
 class Bot(object):
@@ -54,7 +54,8 @@ class Bot(object):
         crash the whole program.
         """
         try:
-            await self.connect()
+            desc = f'connect to game at {self.server}'
+            await keep_trying(self.connect(), 2, desc)
             await self.run()
         except Exception:  # catching all Exceptions is NOT too broad here
             print()
@@ -72,3 +73,27 @@ class Bot(object):
             await self.conn.take_exit(chosen_exit)
         else:
             raise Bot.NoExit()
+
+
+async def keep_trying(f, wait_secs, desc):
+    """
+    Keep trying to invoke f until it succeeds, ie, until it doesn't throw an
+    exception.
+
+    Args:
+        f (thunk): the computation to keep attempting
+        wait_secs (int): number of seconds to wait before retrying
+        desc (str): grammatical predicate describing f (eg, "connect to db")
+
+    Returns: whatever f returns
+    """
+    n = 1
+    while True:
+        try:
+            return f()
+        except Exception as e:  # NOT too broad
+            msg = (f'Attempt no. {n} to {desc} has FAILED.'
+                   f' Retrying in {wait_secs} seconds...')
+            print(msg)
+            n += 1
+            await asyncio.sleep(wait_secs)
