@@ -5,9 +5,10 @@ export $(shell sed 's/=.*//' .env)
 .PHONY: test doc run debug \
 	docker_build docker_run docker_clean docker_cleanall
 
-IMAGE_NAME=rpg-perscrape
-FULL_IMAGE_NAME=$(DOCKER_REGISTRY)/$(IMAGE_NAME)
-CONTAINER_NAME=$(IMAGE_NAME)
+DOCKER_REGISTRY=docker.kirkiano.org
+IMAGE=rpg-perscrape
+FULL_IMAGE=$(DOCKER_REGISTRY)/$(IMAGE)
+CONTAINER=$(IMAGE)
 
 
 run:
@@ -22,20 +23,22 @@ test:
 doc:
 	$(MAKE) -C sphinx html
 
+###########################################################
+
 docker_build:
-	docker build --tag $(FULL_IMAGE_NAME) .
+	docker build --tag $(FULL_IMAGE) .
 
 docker_run: docker_build
-	docker run --env-file .env --name $(CONTAINER_NAME) $(FULL_IMAGE_NAME)
+	docker run --env-file .env --name $(CONTAINER) $(FULL_IMAGE)
 
 docker_logs:
-	docker logs $(CONTAINER_NAME) -f
+	docker logs $(CONTAINER) -f
 
-docker_bash:
-	docker exec -it $(CONTAINER_NAME) /bin/sh
+docker_login:
+	docker exec -it $(CONTAINER) /bin/sh
 
 docker_clean:
-	docker rm -f $(CONTAINER_NAME) || true
+	docker rm -f $(CONTAINER) || true
 
 docker_cleanall: docker_clean
-	docker rmi -f $(FULL_IMAGE_NAME) || true
+	docker rmi -f $(FULL_IMAGE) || true

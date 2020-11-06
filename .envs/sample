@@ -2,4 +2,4 @@ HOST=live_driver
 PORT=11000
 BOTFILE=./botfile
 WAITLEAVE=60  # pedestrian waits roughly one minute (60s) before moving
-DOCKER_REGISTRY=my.registry.com
+LOG_LEVEL=INFO

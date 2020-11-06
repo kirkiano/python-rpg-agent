@@ -2,6 +2,7 @@ import datetime
 import asyncio
 import random
 from collections import defaultdict, namedtuple
+import logging
 
 from bot.base import Bot
 from common.server_message import Place, WaysOut
@@ -23,7 +24,7 @@ class ScrapingBot(Bot):
                    f' not {self.address_act.name}.'
 
     def __init__(self, server, credentials, ioloop, download_func, params,
-                 address_name, do_shuffle=True, verbose=False):
+                 address_name, do_shuffle=True):
         """
         Args:
             server (Connection.Server): server to log in to
@@ -36,10 +37,8 @@ class ScrapingBot(Bot):
             address_name (str): name of the address to which this scraping bot
                                 should be confined
             do_shuffle (bool): randomize the order of headlines
-            verbose (bool):
         """
-        super(ScrapingBot, self).__init__(server, credentials, ioloop,
-                                          verbose=verbose)
+        super(ScrapingBot, self).__init__(server, credentials, ioloop)
         self.download_func = download_func
         self.params = params
         self.do_shuffle = do_shuffle
@@ -68,8 +67,7 @@ class ScrapingBot(Bot):
         if not self.is_home(self.place.address):
             raise ScrapingBot.NotHome(self.home_address, self.place.address)
         self.exits = (await self.conn.wait_for(WaysOut)).exits
-        if self.verbose:
-            print(f'{self.conn.user} is now in {self.place}.')
+        logging.info(f'{self.conn.user} is now in {self.place}.')
         await self._maybe_scrape()
         await self._speak_headlines()
         waiting_period = random.uniform(0, self.params.waitleave)
@@ -88,8 +86,7 @@ class ScrapingBot(Bot):
         if diff > waiting_time:
             self.headlines = await self.download_func()
             self.t_last_download = t_now
-            if self.verbose:
-                print(f'{self.conn.user} has downloaded its content.')
+            logging.info(f'{self.conn.user} has downloaded its content.')
 
     async def _speak_headlines(self):
         """
@@ -103,6 +100,5 @@ class ScrapingBot(Bot):
         for headline in unseen_headlines[:num_headlines_to_speak]:
             saying = headline['title'].strip()
             await self.conn.say(saying)
-            if self.verbose:
-                print(f'{self.conn.user} has said: {saying}.')
+            logging.debug(f'{self.conn.user} has said: {saying}.')
             self.seen[self.place.id].add(headline['id'])

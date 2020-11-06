@@ -1,6 +1,6 @@
 import random
 from abc import ABCMeta, abstractmethod
-from traceback import print_exc
+import logging
 import asyncio
 
 from .connect import Connection
@@ -13,19 +13,17 @@ class Bot(object):
     class NoExit(Exception):
         pass
 
-    def __init__(self, server, credentials, ioloop, verbose=False):
+    def __init__(self, server, credentials, ioloop):
         """
         Args:
             server (Connection.Server): server that this bot should connect to
             credentials (Connection.Credentials): credentials to login to server
             ioloop (asyncio.ioloop):
-            verbose (bool):
         """
         super(Bot, self).__init__()
         self.server = server
         self.credentials = credentials
         self.ioloop = ioloop
-        self.verbose = verbose
         self.exits = []
         self.conn = None
 
@@ -40,8 +38,7 @@ class Bot(object):
         self.conn = await Connection.login(server=self.server,
                                            credentials=self.credentials,
                                            ioloop=self.ioloop)
-        if self.verbose:
-            print(f'{self.name} has connected to the RPG server.')
+        logging.info(f'{self.name} has connected to the RPG server.')
 
     @abstractmethod
     async def run(self):
@@ -55,12 +52,10 @@ class Bot(object):
         """
         try:
             desc = f'connect to game at {self.server}'
-            await keep_trying(self.connect(), 2, desc)
+            await keep_trying(self.connect, 2, desc)
             await self.run()
-        except Exception:  # catching all Exceptions is NOT too broad here
-            print()
-            print(f'{self.name} crashed:')
-            print_exc()
+        except Exception as e:
+            logging.fatal(f'{self.name} crashed: {e}')
 
     async def take_random_exit(self, is_good_exit=lambda _: True):
         """
@@ -85,15 +80,15 @@ async def keep_trying(f, wait_secs, desc):
         wait_secs (int): number of seconds to wait before retrying
         desc (str): grammatical predicate describing f (eg, "connect to db")
 
-    Returns: whatever f returns
+    Returns:
+        whatever f returns
     """
     n = 1
     while True:
         try:
-            return f()
-        except Exception as e:  # NOT too broad
-            msg = (f'Attempt no. {n} to {desc} has FAILED.'
-                   f' Retrying in {wait_secs} seconds...')
-            print(msg)
+            return await f()
+        except Exception as e:
+            logging.warning(f'Attempt no. {n} to {desc} has FAILED: {e}.'
+                            f' Retrying in {wait_secs} seconds...')
             n += 1
             await asyncio.sleep(wait_secs)

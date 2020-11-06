@@ -3,6 +3,7 @@ Scraper decorators. html_scraper and json_scraper are defined at bottom.
 """
 
 from functools import partial, wraps
+import logging
 import json
 
 from bs4 import BeautifulSoup
@@ -43,7 +44,7 @@ def scraper(url, parse):
             try:
                 return extract(parsed_content)
             except Exception as e:
-                print(f'Cannot extract from {url}:')
+                logging.error(f'Cannot extract from {url}:')
                 raise e
 
         return go

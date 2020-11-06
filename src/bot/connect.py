@@ -1,5 +1,6 @@
 import asyncio
 import json
+import logging
 from collections import namedtuple
 
 from common.server_message import ServerMessage, Welcome
@@ -65,7 +66,6 @@ class Connection(object):
         while True:
             try:
                 line = yield from self.reader.readline()
-                # print(f'Received line: {line}')
                 j = json.loads(line.decode('utf-8'))
                 msg = ServerMessage.from_json(j)
                 return msg
@@ -147,7 +147,6 @@ class Connection(object):
             request (dict):
         """
         request_json = json.dumps(request)
-        # print(f'About to send {request_json} (with newline)...', end='')
+        logging.debug(f'Sending {request_json}')
         self.writer.write((request_json + '\r\n').encode('utf-8'))
         yield from self.writer.drain()
-        # print('DONE')

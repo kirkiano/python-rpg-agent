@@ -1,5 +1,7 @@
 import argparse
 import asyncio
+import coloredlogs
+import os
 
 from bot.connect import Connection
 from scrape import scrapers
@@ -7,29 +9,34 @@ from scrape.bot import ScrapingBot
 
 
 def parse_args():
-    help_msg = ('text file in which each line has the name of a desired bot,'
-                ' its password, and the name of the address to which it should'
-                ' be confined, all separated by a single space. Any whitespace'
-                ' inside the address name should be limited to one space'
-                ' between its words, and no quote marks should be used to'
-                ' delimit it.')
-    parser = argparse.ArgumentParser(description='RPG bot')
+    botfile_help = (
+        'Text file in which each line has the name of a desired bot,'
+        ' its password, and the RPG address to which it'
+        ' should be confined, all separated by a single space. Any'
+        ' whitespace inside the address name should be limited to one'
+        ' space between its words, and no quote marks should be used'
+        ' to delimit it.'
+    )
+    parser = argparse.ArgumentParser(
+        description='RPG bots that scrape online periodicals',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
     parser.add_argument(
         '--host',
         metavar='HOST',
         default='localhost',
-        help='server hostname'
+        help='Hostname of server (live driver)'
     )
     parser.add_argument(
         'port',
         metavar='PORT',
         type=int,
-        help='server port'
+        help='Port on server (live driver)'
     )
     parser.add_argument(
         'botfile',
         metavar='BOTFILE',
-        help=help_msg
+        help=botfile_help
     )
     parser.add_argument(
         '--ntitles',
@@ -52,14 +59,6 @@ def parse_args():
         default=1200,
         help='Maxmum time (minutes) bot waits before redownloading'
     )
-    parser.add_argument(
-        '-v',
-        '--verbose',
-        action='store_true',
-        default=False,
-        help='Print verbose output',
-        dest='verbose',
-    )
     return parser.parse_args()
 
 
@@ -77,7 +76,7 @@ def parse_botfile(botfile):
     return dict([make_bot_data_tuple(line) for line in contents])
 
 
-def get_bots(ioloop, server, botfile, bot_params, verbose=False):
+def get_bots(ioloop, server, botfile, bot_params):
     def make_bot(name, scraper, password, address):
         creds = Connection.Credentials(name, password)
         return ScrapingBot(server=server,
@@ -85,8 +84,7 @@ def get_bots(ioloop, server, botfile, bot_params, verbose=False):
                            ioloop=ioloop,
                            download_func=scraper,
                            params=bot_params,
-                           address_name=address,
-                           verbose=verbose)
+                           address_name=address)
 
     bot_data = parse_botfile(botfile)
     scrapers_selected = {bn: getattr(scrapers, 'scrape_' + bn)
@@ -96,18 +94,26 @@ def get_bots(ioloop, server, botfile, bot_params, verbose=False):
     return bots
 
 
-def main(server, botfile, bot_params, verbose=False):
+def main(server, botfile, bot_params):
     ioloop = asyncio.get_event_loop()
-    bots = get_bots(ioloop, server, botfile, bot_params, verbose)
+    bots = get_bots(ioloop, server, botfile, bot_params)
     tasks = [ioloop.create_task(bot.connect_and_run_safely()) for bot in bots]
     ioloop.run_until_complete(asyncio.wait(tasks))
     ioloop.close()
 
 
 if __name__ == '__main__':
+    log_level = os.environ.get('LOG_LEVEL', 'INFO')
+    print(f'Log level is {log_level}')
+
+    # To change the format of log messages, see
+    # https://docs.python.org/3/howto/logging.html#changing-the-format-of-displayed-messages
+    # and https://docs.python.org/3/library/logging.html#logrecord-attributes
+    coloredlogs.install(level=log_level,
+                        fmt='%(asctime)s,%(msecs)03d %(levelname)s %(message)s')
     ARGS = parse_args()
     SERVER = Connection.Server(ARGS.host, ARGS.port)
     BOT_PARAMS = ScrapingBot.Params(ARGS.ntitles,
                                     ARGS.waitleave,
                                     ARGS.waitdl)
-    main(SERVER, ARGS.botfile, BOT_PARAMS, ARGS.verbose)
+    main(SERVER, ARGS.botfile, BOT_PARAMS)

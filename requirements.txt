@@ -6,6 +6,7 @@ beautifulsoup4==4.7.1
 brotlipy==0.7.0
 cffi==1.11.5
 chardet==3.0.4
+coloredlogs==14.0
 idna==2.8
 idna-ssl==1.1.0
 multidict==4.5.2

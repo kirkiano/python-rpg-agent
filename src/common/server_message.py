@@ -1,3 +1,5 @@
+import logging
+
 from .rpg_object import Exit, Place as PlaceModel
 
 
@@ -15,7 +17,7 @@ class ServerMessage(object):
         try:
             return ServerMessage._parse_json(j)
         except KeyError as e:
-            pass  # ignore quietly # print(ServerMessage.CannotParse(j, e))
+            logging.warning(f'Ignoring unparseable JSON {j}.')
 
     @staticmethod
     def _parse_json(j):
