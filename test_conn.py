@@ -3,6 +3,8 @@ import asyncio
 import time
 from traceback import print_exc
 
+# TODO: eventually get rid of this file
+
 
 host = 'live_driver'
 port = 11237

@@ -3,7 +3,7 @@ import asyncio
 import coloredlogs
 import os
 
-from bot import botfile_to_dict
+from bot import parse_botline
 from connect import Connection
 from scrape import scrapers
 from scrape.bot import ScrapingBot
@@ -13,22 +13,23 @@ from args import parse_args
 def get_bots(ioloop, server_address, botfile, bot_params):
     """
     Construct the scraping bots stipulated in a given botfile.
-    See :func:`botfile_to_dict` for botfile format.
+    See :module:`bot.parse` for format of botfiles.
 
     Args:
         ioloop (:obj:`ioloop`):
         server_address (:obj:`Connection.SocketAddress`):
-        botfile (str): path of botfile
+        botfile (str): path to the botfile
         bot_params (:obj:`ScrapingBot.Params`):
 
     Returns:
         :obj:`list` of :obj:`ScrapingBot`
     """
-    bot_data = botfile_to_dict(botfile)
-    return [ScrapingBot.create(name, password, server_address, ioloop,
-                               getattr(scrapers, 'scrape_' + name),
-                               address, bot_params)
-            for (name, (password, address)) in bot_data.items()]
+    def make_bot(name, password, address):
+        return ScrapingBot.create(name, password, server_address, ioloop,
+                                  getattr(scrapers, 'scrape_' + name),
+                                  address, bot_params)
+    with open(botfile, 'r') as f:
+        return map(make_bot, map(parse_botline, f.readlines()))
 
 
 def main(server_address, botfile, bot_params):

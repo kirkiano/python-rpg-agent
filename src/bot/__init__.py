@@ -1,2 +1,2 @@
-from .parse_file import botfile_to_dict
+from .parse import parse_botline
 from .base import Bot

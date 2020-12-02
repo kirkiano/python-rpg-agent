@@ -18,7 +18,7 @@ debug:
 	python src/main.py $(PORT) $(BOTFILE) --waitleave $(WAITLEAVE) -v
 
 test:
-	python -m unittest test
+	python -m unittest discover -s src -p "*_test.py"
 
 doc:
 	$(MAKE) -C sphinx html
