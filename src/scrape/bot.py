@@ -4,8 +4,9 @@ import random
 from collections import defaultdict, namedtuple
 import logging
 
-from bot.base import Bot
-from common.server_message import Place, WaysOut
+from bot import Bot
+from connect import Connection
+from message import Place, WaysOut
 
 
 class ScrapingBot(Bot):
@@ -22,6 +23,16 @@ class ScrapingBot(Bot):
         def __str__(self):
             return f'Expected to be at {self.address_exp},' \
                    f' not {self.address_act.name}.'
+
+    @staticmethod
+    def create(name, password, server, ioloop, scraper, address, bot_params):
+        creds = Connection.Credentials(name, password)
+        return ScrapingBot(server=server,
+                           credentials=creds,
+                           ioloop=ioloop,
+                           download_func=scraper,
+                           params=bot_params,
+                           address_name=address)
 
     def __init__(self, server, credentials, ioloop, download_func, params,
                  address_name, do_shuffle=True):

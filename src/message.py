@@ -1,6 +1,6 @@
 import logging
 
-from .rpg_object import Exit, Place as PlaceModel
+from model import Exit, Place as PlaceModel
 
 
 class ServerMessage(object):
@@ -17,7 +17,7 @@ class ServerMessage(object):
         try:
             return ServerMessage._parse_json(j)
         except KeyError as e:
-            logging.warning(f'Ignoring unparseable JSON {j}.')
+            logging.warning(f'Ignoring unparseable JSON {j} ({e}).')
 
     @staticmethod
     def _parse_json(j):
@@ -32,6 +32,47 @@ class ServerMessage(object):
         except KeyError:
             raise KeyError(f"tag '{tag}' not recognized")
         return cls.from_json(j)
+
+
+class Welcome(ServerMessage):  # ValueMessage):
+    def __init__(self, idn):
+        self.id = idn
+
+    @staticmethod
+    def from_json(j):
+        return Welcome(j['cid'])
+
+
+class Place(ServerMessage):  # ValueMessage):
+    """
+    Information about the place the player is currently in.
+    """
+    def __init__(self, place):
+        """
+        Args:
+            place (PlaceModel):
+        """
+        self.place = place
+
+    @staticmethod
+    def from_json(j):
+        return Place(PlaceModel.from_json(j))
+
+
+class WaysOut(ServerMessage):  # ValueMessage):
+    """
+    Information about the exits available from the current place.
+    """
+    def __init__(self, exits):
+        """
+        Args:
+            exits (list of Exit):
+        """
+        self.exits = exits
+
+    @staticmethod
+    def from_json(j):
+        return WaysOut([Exit.from_json(e) for e in j['exits']])
 
 
 # class EventMessage(ServerMessage):
@@ -75,15 +116,6 @@ class ServerMessage(object):
 #             # raise KeyError(f"tag '{tag}' not recognized")
 #             pass
 #         return cls.from_json(j)
-
-
-class Welcome(ServerMessage):  # ValueMessage):
-    def __init__(self, idn):
-        self.id = idn
-
-    @staticmethod
-    def from_json(j):
-        return Welcome(j['cid'])
 
 
 # class ThingDescription(ValueMessage):
@@ -136,38 +168,6 @@ class Welcome(ServerMessage):  # ValueMessage):
 #     @staticmethod
 #     def from_json(j):
 #         return Looked(*j)
-
-
-class Place(ServerMessage):  # ValueMessage):
-    """
-    Information about the place the player is currently in.
-    """
-    def __init__(self, place):
-        """
-        Args:
-            place (PlaceModel):
-        """
-        self.place = place
-
-    @staticmethod
-    def from_json(j):
-        return Place(PlaceModel.from_json(j))
-
-
-class WaysOut(ServerMessage):  # ValueMessage):
-    """
-    Information about the exits available from the current place.
-    """
-    def __init__(self, exits):
-        """
-        Args:
-            exits (list of Exit):
-        """
-        self.exits = exits
-
-    @staticmethod
-    def from_json(j):
-        return WaysOut([Exit.from_json(e) for e in j['exits']])
 
 
 # class Contents(ValueMessage):

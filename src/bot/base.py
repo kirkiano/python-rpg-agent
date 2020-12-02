@@ -3,7 +3,7 @@ from abc import ABCMeta, abstractmethod
 import logging
 import asyncio
 
-from .connect import Connection
+from connect import Connection
 
 
 class Bot(object):

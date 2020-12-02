@@ -3,15 +3,14 @@ import json
 import logging
 from collections import namedtuple
 
-from common.server_message import ServerMessage, Welcome
-from common.request import (TakeExit, Say)
+from message import ServerMessage, Welcome
+from request import (TakeExit, Say)
 
 
 class Connection(object):
     """Object representing a connection to the RPG server."""
 
-    Server = namedtuple('Server', 'host, port')
-
+    SocketAddress = namedtuple('SocketAddress', 'host, port')
     Credentials = namedtuple('Credentials', 'user, pw')
 
     @staticmethod
@@ -88,6 +87,14 @@ class Connection(object):
     #######################################################
     # requests
 
+    @asyncio.coroutine
+    def take_exit(self, eid):
+        yield from self._send_request(TakeExit(eid))
+
+    @asyncio.coroutine
+    def say(self, speech):
+        yield from self._send_request(Say(speech))
+
     # @asyncio.coroutine
     # def who_am_i(self):
     #     yield from self._send_request(WhoAmI())
@@ -111,14 +118,6 @@ class Connection(object):
     # @asyncio.coroutine
     # def describe_thing(self, tid):
     #     yield from self._send_request(DescribeThing(tid))
-
-    @asyncio.coroutine
-    def take_exit(self, eid):
-        yield from self._send_request(TakeExit(eid))
-
-    @asyncio.coroutine
-    def say(self, speech):
-        yield from self._send_request(Say(speech))
 
     # @asyncio.coroutine
     # def whisper(self, speech, tid):

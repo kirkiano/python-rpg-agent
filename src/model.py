@@ -1,37 +1,65 @@
 from abc import ABC
-from enum import Enum
+from enum import Enum, unique
 
 
-Direction = Enum('Direction',
-                 """
-                 UP DOWN NORTH EAST SOUTH WEST
-                 NORTHEAST NORTHWEST SOUTHEAST SOUTHWEST
-                 """)
+@unique
+class Direction(Enum):
+    UP = 'u'
+    DOWN = 'd'
+    NORTH = 'n'
+    SOUTH = 's'
+    EAST = 'e'
+    WEST = 'w'
+    NORTHEAST = 'ne'
+    NORTHWEST = 'nw'
+    SOUTHEAST = 'se'
+    SOUTHWEST = 'sw'
+
+
+def dxn2code(dxn):
+    """
+    Convert a Direction to a string code (the inverse of code2dxn)
+    Args:
+        dxn (:class:Direction):
+    Returns:
+        str: the code corresponding to `dxn`
+    """
+    return dxn.value
 
 
 def code2dxn(code):
-    if code == 'u':
-        return Direction.UP
-    elif code == 'd':
-        return Direction.DOWN
-    elif code == 'n':
-        return Direction.NORTH
-    elif code == 's':
-        return Direction.SOUTH
-    elif code == 'e':
-        return Direction.EAST
-    elif code == 'w':
-        return Direction.WEST
-    elif code == 'ne':
-        return Direction.NORTHEAST
-    elif code == 'nw':
-        return Direction.NORTHWEST
-    elif code == 'se':
-        return Direction.SOUTHEAST
-    elif code == 'sw':
-        return Direction.SOUTHWEST
-    else:
-        raise Exception(f'Unknown Direction code: {code}')
+    """
+    Convert a string code to a Direction (the inverse of dxn2code)
+    Args:
+        code (str): one of u, d, n, s, e, w, ne, nw, se, sw
+    Returns: :class:Direction
+    Raises:
+        ValueError if `code` is invalid
+    """
+    return Direction(code)
+    # TODO: delete the following
+    # if code == 'u':
+    #     return Direction.UP
+    # elif code == 'd':
+    #     return Direction.DOWN
+    # elif code == 'n':
+    #     return Direction.NORTH
+    # elif code == 's':
+    #     return Direction.SOUTH
+    # elif code == 'e':
+    #     return Direction.EAST
+    # elif code == 'w':
+    #     return Direction.WEST
+    # elif code == 'ne':
+    #     return Direction.NORTHEAST
+    # elif code == 'nw':
+    #     return Direction.NORTHWEST
+    # elif code == 'se':
+    #     return Direction.SOUTHEAST
+    # elif code == 'sw':
+    #     return Direction.SOUTHWEST
+    # else:
+    #     raise Exception(f'Unknown Direction code: {code}')
 
 
 class RPGObject(ABC):

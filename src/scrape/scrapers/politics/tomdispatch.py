@@ -1,6 +1,6 @@
 from uuid import uuid4
 
-from scrape.decorators import html_scraper
+from scrape import html_scraper
 
 
 @html_scraper('http://www.tomdispatch.com')

@@ -1,9 +1,9 @@
 import asyncio
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
-from rpg_client_utils.connect import Connection
+from connect import Connection
 from .mock import async_mock, MockConnection
-from kirkiano_test_utils.asyncio import TestAsyncIO
+from .asyncio import TestAsyncIO
 from scrape.bot import ScrapingBot
 
 
@@ -32,11 +32,11 @@ class TestScrapingBot(TestAsyncIO):
         waitleave = 0  # seconds
         waitdl = 0  # minutes
         bot_params = ScrapingBot.Params(ntitles, waitleave, waitdl)
-        server = Connection.Server('dummy_host', 0)
+        server = Connection.SocketAddress('dummy_host', 0)
         creds = Connection.Credentials('dummy_user', 'dummy_password')
         bot = ScrapingBot(server, creds, self.ioloop, download_func,
                           bot_params)
-        server = Connection.Server('dummy_host', 'dummy_port')
+        server = Connection.SocketAddress('dummy_host', 'dummy_port')
         self.ioloop.run_until_complete(bot.connect())
 
         mock_conn = Connection.login.mock.return_value
@@ -47,6 +47,7 @@ class TestScrapingBot(TestAsyncIO):
         assert not mock_conn.look_mock.called
 
         self.ioloop.run_until_complete(bot._run_iteration())
+
         mock_conn.wait_for_place_mock.assert_called_once()
         mock_conn.say_mock.assert_called_once()
         mock_conn.take_exit_mock.assert_called_once()

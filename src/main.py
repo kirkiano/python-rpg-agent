@@ -1,102 +1,39 @@
-import argparse
+
 import asyncio
 import coloredlogs
 import os
 
-from bot.connect import Connection
+from bot import botfile_to_dict
+from connect import Connection
 from scrape import scrapers
 from scrape.bot import ScrapingBot
+from args import parse_args
 
 
-def parse_args():
-    botfile_help = (
-        'Text file in which each line has the name of a desired bot,'
-        ' its password, and the RPG address to which it'
-        ' should be confined, all separated by a single space. Any'
-        ' whitespace inside the address name should be limited to one'
-        ' space between its words, and no quote marks should be used'
-        ' to delimit it.'
-    )
-    parser = argparse.ArgumentParser(
-        description='RPG bots that scrape online periodicals',
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter
-    )
-    parser.add_argument(
-        '--host',
-        metavar='HOST',
-        default='localhost',
-        help='Hostname of server (live driver)'
-    )
-    parser.add_argument(
-        'port',
-        metavar='PORT',
-        type=int,
-        help='Port on server (live driver)'
-    )
-    parser.add_argument(
-        'botfile',
-        metavar='BOTFILE',
-        help=botfile_help
-    )
-    parser.add_argument(
-        '--ntitles',
-        metavar='NTITLES',
-        type=int,
-        default=1,
-        help='Max number of titles a bot announces per visit to a room'
-    )
-    parser.add_argument(
-        '--waitleave',
-        metavar='WAITLEAVE',
-        type=int,
-        default=1200,
-        help='Maximum time (seconds) bot waits before leaving a room'
-    )
-    parser.add_argument(
-        '--waitdl',
-        metavar='WAITDL',
-        type=int,
-        default=1200,
-        help='Maxmum time (minutes) bot waits before redownloading'
-    )
-    return parser.parse_args()
+def get_bots(ioloop, server_address, botfile, bot_params):
+    """
+    Construct the scraping bots stipulated in a given botfile.
+    See :func:`botfile_to_dict` for botfile format.
+
+    Args:
+        ioloop (:obj:`ioloop`):
+        server_address (:obj:`Connection.SocketAddress`):
+        botfile (str): path of botfile
+        bot_params (:obj:`ScrapingBot.Params`):
+
+    Returns:
+        :obj:`list` of :obj:`ScrapingBot`
+    """
+    bot_data = botfile_to_dict(botfile)
+    return [ScrapingBot.create(name, password, server_address, ioloop,
+                               getattr(scrapers, 'scrape_' + name),
+                               address, bot_params)
+            for (name, (password, address)) in bot_data.items()]
 
 
-def parse_botfile(botfile):
-    # User knows that the file should contain no blank lines
-    with open(botfile, 'r') as f:
-        contents = f.readlines()
-
-    def make_bot_data_tuple(line):
-        parts = line.split()
-        if len(parts) < 3:
-            raise Exception(f'botfile malformed at "{line}"')
-        return parts[0], (parts[1], ' '.join(parts[2:]))
-
-    return dict([make_bot_data_tuple(line) for line in contents])
-
-
-def get_bots(ioloop, server, botfile, bot_params):
-    def make_bot(name, scraper, password, address):
-        creds = Connection.Credentials(name, password)
-        return ScrapingBot(server=server,
-                           credentials=creds,
-                           ioloop=ioloop,
-                           download_func=scraper,
-                           params=bot_params,
-                           address_name=address)
-
-    bot_data = parse_botfile(botfile)
-    scrapers_selected = {bn: getattr(scrapers, 'scrape_' + bn)
-                         for bn in bot_data}
-    bots = [make_bot(name, scrapers_selected[name], *pw_and_address)
-            for (name, pw_and_address) in bot_data.items()]
-    return bots
-
-
-def main(server, botfile, bot_params):
+def main(server_address, botfile, bot_params):
     ioloop = asyncio.get_event_loop()
-    bots = get_bots(ioloop, server, botfile, bot_params)
+    bots = get_bots(ioloop, server_address, botfile, bot_params)
     tasks = [ioloop.create_task(bot.connect_and_run_safely()) for bot in bots]
     ioloop.run_until_complete(asyncio.wait(tasks))
     ioloop.close()
@@ -112,8 +49,8 @@ if __name__ == '__main__':
     coloredlogs.install(level=log_level,
                         fmt='%(asctime)s,%(msecs)03d %(levelname)s %(message)s')
     ARGS = parse_args()
-    SERVER = Connection.Server(ARGS.host, ARGS.port)
+    SERVER_ADDRESS = Connection.SocketAddress(ARGS.host, ARGS.port)
     BOT_PARAMS = ScrapingBot.Params(ARGS.ntitles,
                                     ARGS.waitleave,
                                     ARGS.waitdl)
-    main(SERVER, ARGS.botfile, BOT_PARAMS)
+    main(SERVER_ADDRESS, ARGS.botfile, BOT_PARAMS)

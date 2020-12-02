@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock
 
-from common.rpg_object import Place, Address, Exit, Direction
+from model import Place, Address, Exit, Direction
 
 
 class MockConnection(object):
