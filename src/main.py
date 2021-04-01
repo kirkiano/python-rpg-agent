@@ -25,11 +25,16 @@ def get_bots(ioloop, server_address, botfile, bot_params):
         :obj:`list` of :obj:`ScrapingBot`
     """
     def make_bot(name, password, address):
+        # name = args[0]
+        # password = args[1]
+        # address = args[2]
         return ScrapingBot.create(name, password, server_address, ioloop,
                                   getattr(scrapers, 'scrape_' + name),
                                   address, bot_params)
     with open(botfile, 'r') as f:
-        return map(make_bot, map(parse_botline, f.readlines()))
+        bot_lines = f.readlines()
+        bot_param_tuples = list(map(parse_botline, bot_lines))
+        return [make_bot(*bot_params) for bot_params in bot_param_tuples]
 
 
 def main(server_address, botfile, bot_params):

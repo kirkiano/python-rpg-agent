@@ -29,6 +29,7 @@ def parse_args():
     parser.add_argument(
         'botfile',
         metavar='BOTFILE',
+        default='botfile',
         help=botfile_help
     )
     parser.add_argument(

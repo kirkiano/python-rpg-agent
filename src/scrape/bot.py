@@ -45,8 +45,8 @@ class ScrapingBot(Bot):
                     target content, returning a list of dicts, each having
                     two keys: id & title
             params (ScrapingBot.Params):
-            address_name (str): name of the address to which this scraping bot
-                                should be confined
+            address_name (str): name of the RPG address to which this scraping
+                                bot should be confined
             do_shuffle (bool): randomize the order of headlines
         """
         super(ScrapingBot, self).__init__(server, credentials, ioloop)
