@@ -75,6 +75,7 @@ class ScrapingBot(Bot):
 
     async def _run_iteration(self):
         self.place = (await self.conn.wait_for(Place)).place
+        logging.info(f'{self.name} is now in {self.place}')
         if not self.is_home(self.place.address):
             raise ScrapingBot.NotHome(self.home_address, self.place.address)
         self.exits = (await self.conn.wait_for(WaysOut)).exits

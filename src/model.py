@@ -179,3 +179,21 @@ class Exit(RPGObject):
         dxn = code2dxn(j['dir'])
         nbr = Place.from_json(j['nbr'])
         return Exit(j['id'], dxn, j['port'], nbr)
+
+
+@unique
+class NonverbalExpression(Enum):
+    Smile = 1
+    Scowl = 2
+
+    @staticmethod
+    def from_string(s):
+        if s.lower() == 'smile':
+            return NonverbalExpression.Smile
+        elif s.lower() == 'scowl':
+            return NonverbalExpression.Scowl
+        else:
+            raise Exception(f'Unknown nonverbal expression: {s}')
+
+    def __str__(self):
+        return 'smile' if self == NonverbalExpression.Smile else 'scowl'

@@ -53,9 +53,8 @@ class Connection(object):
 
     async def authenticate(self, credentials):
         await self._send_dict({
-            'type': 'login',
-            'creds': {'user': credentials.user,
-                      'pass': credentials.pw}
+            'name': credentials.user,
+            'pass': credentials.pw
         })
         await self.wait_for(Welcome)
         self.credentials = credentials
