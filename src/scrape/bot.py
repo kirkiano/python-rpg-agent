@@ -6,7 +6,7 @@ import logging
 
 from bot import Bot
 from connect import Connection
-from message import Place, WaysOut
+from message import Place, WaysOut, GameOver
 
 
 class ScrapingBot(Bot):
@@ -70,8 +70,11 @@ class ScrapingBot(Bot):
         Connect to the game, download target content specific to this bot, and
         walk around from room to room, announcing headlines from the content.
         """
-        while True:
-            await self._run_iteration()
+        try:
+            while True:
+                await self._run_iteration()
+        except GameOver as e:
+            logging.info(f'{self.name} detected game-over: {e}')
 
     async def _run_iteration(self):
         self.place = (await self.conn.wait_for(Place)).place

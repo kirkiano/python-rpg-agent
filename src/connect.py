@@ -3,7 +3,7 @@ import json
 import logging
 from collections import namedtuple
 
-from message import ServerMessage, Welcome
+from message import ServerMessage, Welcome, GameOver
 from request import (TakeExit, Say)
 
 
@@ -66,6 +66,8 @@ class Connection(object):
                 line = yield from self.reader.readline()
                 j = json.loads(line.decode('utf-8'))
                 msg = ServerMessage.from_json(j)
+                if isinstance(msg, GameOver):
+                    raise msg
                 return msg
             except ServerMessage.CannotParse:
                 raise

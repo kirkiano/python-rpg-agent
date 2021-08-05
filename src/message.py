@@ -229,6 +229,19 @@ class Expressed(ServerMessage):
         return Expressed(j['by'], j['to'],
                          NonverbalExpression.from_string(j['nve']))
 
+
+class GameOver(ServerMessage, Exception):
+    """
+    The game has ended.
+    """
+    def __init__(self, reason):
+        self.reason = reason
+
+    @staticmethod
+    def from_json(j):
+        return GameOver(j['reason'])
+
+
 # class ThingEdited(EventMessage):
 #     """
 #     A Thing has been edited (so you may want to request its description).
