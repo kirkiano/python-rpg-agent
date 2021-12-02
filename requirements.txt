@@ -4,7 +4,7 @@ asyncio==3.4.3
 attrs==18.2.0
 beautifulsoup4==4.7.1
 brotlipy==0.7.0
-cffi==1.11.5
+#cffi==1.11.5
 chardet==3.0.4
 coloredlogs==14.0
 idna==2.8
