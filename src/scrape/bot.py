@@ -77,9 +77,9 @@ class ScrapingBot(Bot):
             logging.info(f'{self.name} detected game-over: {e}')
 
     async def _run_iteration(self):
-        self.exits = (await self.conn.wait_for(WaysOut)).exits
         self.place = (await self.conn.wait_for(Place)).place
         logging.info(f'{self.name} is now in {self.place}')
+        self.exits = (await self.conn.wait_for(WaysOut)).exits
         if not self.is_home(self.place.address):
             raise ScrapingBot.NotHome(self.home_address, self.place.address)
         await self._maybe_scrape()
