@@ -11,12 +11,11 @@ RUN python3 -m venv $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 WORKDIR /usr/src/app
+COPY . .
 
 RUN pip install --upgrade pip
 COPY ./requirements.txt .
 RUN pip install -r requirements.txt
-
-COPY . .
 
 CMD python src/main.py $PORT $BOTFILE --host $HOST --waitleave $WAITLEAVE
 # CMD ["python", "./test_conn.py"]
