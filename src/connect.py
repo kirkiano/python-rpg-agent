@@ -52,10 +52,12 @@ class Connection(object):
         self.writer.close()
 
     async def authenticate(self, credentials):
-        await self._send_dict({
+        np = {
             'name': credentials.user,
             'pass': credentials.pw
-        })
+        }
+        creds = {'NamePassword': np}
+        await self._send_dict(creds)
         await self.wait_for(Welcome)
         self.credentials = credentials
 
