@@ -1,6 +1,6 @@
 import logging
 
-from model import Char, Thing, Exit, Place as PlaceModel, NonverbalExpression
+from model import Char, Exit, NonverbalExpression, Place as PlaceModel, Thing
 
 
 class ServerMessage(object):

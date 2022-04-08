@@ -1,1 +1,1 @@
-from .decorators import html_scraper
+from .decorators import html_scraper  # noqa: F401

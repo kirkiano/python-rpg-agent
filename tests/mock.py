@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock
 
-from model import Place, Address, Exit, Direction
+# from model import Place, Address, Exit, Direction
 
 
 class MockConnection(object):
@@ -16,23 +16,24 @@ class MockConnection(object):
         self.take_exit_mock = MagicMock()
         self.say_mock = MagicMock()
         self.whisper_mock = MagicMock()
-        addresses = [
-            Address(1, 'Acropolis', 1, 'Main Street', 'Athens', 'Greece'),
-            Address(2, 'Acropolis', 2, 'Main Street', 'Athens', 'Greece'),
-        ]
-        places = [
-            Place(1, 'Temple of Athena', 'spacious', addresses[0]),
-            Place(2, 'Temple of Aphrodite', 'spacious', addresses[1]),
-        ]
-        def reduced_place(place): return place.id, place.name, place.address
-        exits = [
-            Exit(1, 'an open doorway', Direction.NORTH, True,
-                 (reduced_place(places[0]))),
-            Exit(2, 'an open doorway', Direction.SOUTH, True,
-                 (reduced_place(places[1]))),
-        ]
-        # self.wait_for_place_mock =
-        #   MagicMock(return_value=PlaceMessage(places[0]))
+        # addresses = [
+        #     Address(1, 'Acropolis', 1, 'Main Street', 'Athens', 'Greece'),
+        #     Address(2, 'Acropolis', 2, 'Main Street', 'Athens', 'Greece'),
+        # ]
+        # # places = [
+        #     Place(1, 'Temple of Athena', 'spacious', addresses[0]),
+        #     Place(2, 'Temple of Aphrodite', 'spacious', addresses[1]),
+        # ]
+        # # def reduced_place(place):
+        # #     return place.id, place.name, place.address
+        # exits = [
+        #     Exit(1, 'an open doorway', Direction.NORTH, True,
+        #          (reduced_place(places[0]))),
+        #     Exit(2, 'an open doorway', Direction.SOUTH, True,
+        #          (reduced_place(places[1]))),
+        # ]
+        # # self.wait_for_place_mock =
+        # #   MagicMock(return_value=PlaceMessage(places[0]))
 
     async def recv_message(self, *args, **kwargs):
         return self.recv_message_mock(*args, **kwargs)
@@ -72,8 +73,8 @@ def async_mock(*args, **kwargs):
     """See https://blog.miguelgrinberg.com/post/unit-testing-asyncio-code"""
     m = MagicMock(*args, **kwargs)
 
-    async def mock_coro(*args, **kwargs):
-        return m(*args, **kwargs)
+    async def mock_coro(*co_args, **co_kwargs):
+        return m(*co_args, **co_kwargs)
 
     mock_coro.mock = m
     return mock_coro

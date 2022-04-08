@@ -8,7 +8,8 @@ from scrape.bot import ScrapingBot
 
 
 def async_test(f):
-    """See https://stackoverflow.com/questions/23033939/how-to-test-python-3-4-asyncio-code"""
+    """See https://stackoverflow.com/questions
+                            /23033939/how-to-test-python-3-4-asyncio-code"""
     def wrapper(*args, **kwargs):
         coro = asyncio.coroutine(f)
         future = coro(*args, **kwargs)

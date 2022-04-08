@@ -1,12 +1,12 @@
-import datetime
 import asyncio
+import datetime
+import logging
 import random
 from collections import defaultdict, namedtuple
-import logging
 
 from bot import Bot
 from connect import Connection
-from message import Place, WaysOut, GameOver
+from message import GameOver, Place, WaysOut
 
 
 class ScrapingBot(Bot):
@@ -110,7 +110,8 @@ class ScrapingBot(Bot):
                             if p['id'] not in self.seen[self.place.id]]
         if self.do_shuffle:
             random.shuffle(unseen_headlines)
-        num_headlines_to_speak = min(self.params.ntitles, len(unseen_headlines))
+        num_headlines_to_speak = min(self.params.ntitles,
+                                     len(unseen_headlines))
         for headline in unseen_headlines[:num_headlines_to_speak]:
             saying = headline['title'].strip()
             await self.conn.say(saying)

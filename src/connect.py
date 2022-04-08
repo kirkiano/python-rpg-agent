@@ -3,8 +3,8 @@ import json
 import logging
 from collections import namedtuple
 
-from message import ServerMessage, Welcome, GameOver
-from request import (TakeExit, Say)
+from message import GameOver, ServerMessage, Welcome
+from request import Say, TakeExit
 
 
 class Connection(object):

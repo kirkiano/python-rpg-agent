@@ -2,9 +2,9 @@
 Scraper decorators. html_scraper and json_scraper are defined at bottom.
 """
 
-from functools import partial, wraps
-import logging
 import json
+import logging
+from functools import partial, wraps
 
 from bs4 import BeautifulSoup
 

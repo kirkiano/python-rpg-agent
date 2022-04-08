@@ -1,3 +1,3 @@
-from .linguistics import *
-from .politics import *
-from .science import *
+from .linguistics import *  # noqa: F401, F403
+from .politics import *  # noqa: F401, F403
+from .science import *  # noqa: F401, F403

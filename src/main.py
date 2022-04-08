@@ -1,13 +1,14 @@
 
 import asyncio
-import coloredlogs
 import os
 
+import coloredlogs
+
+from args import parse_args
 from bot import parse_botline
 from connect import Connection
 from scrape import scrapers
 from scrape.bot import ScrapingBot
-from args import parse_args
 
 
 def get_bots(ioloop, server_address, botfile, bot_params):
@@ -50,10 +51,13 @@ if __name__ == '__main__':
     print(f'Log level is {log_level}')
 
     # To change the format of log messages, see
-    # https://docs.python.org/3/howto/logging.html#changing-the-format-of-displayed-messages
+    # https://docs.python.org/3/howto/
+    #             logging.html#changing-the-format-of-displayed-messages
     # and https://docs.python.org/3/library/logging.html#logrecord-attributes
-    coloredlogs.install(level=log_level,
-                        fmt='%(asctime)s,%(msecs)03d %(levelname)s %(message)s')
+    coloredlogs.install(
+        level=log_level,
+        fmt='%(asctime)s,%(msecs)03d %(levelname)s %(message)s'
+    )
     ARGS = parse_args()
     SERVER_ADDRESS = Connection.SocketAddress(ARGS.host, ARGS.port)
     BOT_PARAMS = ScrapingBot.Params(ARGS.ntitles,

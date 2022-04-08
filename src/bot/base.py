@@ -1,7 +1,7 @@
+import asyncio
+import logging
 import random
 from abc import ABCMeta, abstractmethod
-import logging
-import asyncio
 
 from connect import Connection
 
@@ -17,8 +17,8 @@ class Bot(object):
         """
         Args:
             server (Connection.Server): server that this bot should connect to
-            credentials (Connection.Credentials): credentials to login to server
-            ioloop (asyncio.ioloop):
+            credentials (Connection.Credentials): credentials to login to
+            server ioloop (asyncio.ioloop):
         """
         super(Bot, self).__init__()
         self.server = server

@@ -8,4 +8,5 @@ def scrape_tomdispatch(soup):
     return [dict(id=uuid4(), title=tag.text)
             for tag in soup.find_all(class_='title')]
 
+
 SCRAPERS = [scrape_tomdispatch]
