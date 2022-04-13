@@ -18,7 +18,7 @@ flake8:
 	flake8 src --application-import-names appnexus
 
 test:
-	python -m unittest discover -s src -p "*_test.py"
+	python -m unittest discover -s src -p "*_test.py" -v
 
 doc:
 	$(MAKE) -C sphinx html

@@ -36,7 +36,7 @@ class TestScrapingBot(TestAsyncIO):
         server = Connection.SocketAddress('dummy_host', 0)
         creds = Connection.Credentials('dummy_user', 'dummy_password')
         bot = ScrapingBot(server, creds, self.ioloop, download_func,
-                          bot_params)
+                          bot_params, 'some_address')
         server = Connection.SocketAddress('dummy_host', 'dummy_port')
         self.ioloop.run_until_complete(bot.connect())
 
