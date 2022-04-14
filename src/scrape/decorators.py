@@ -3,15 +3,21 @@ Scraper decorators. html_scraper and json_scraper are defined at bottom.
 """
 
 import json
-import logging
 from functools import partial, wraps
 
 from bs4 import BeautifulSoup
 
+from exn import RPGException
 from .download import download_web_page
 
 
-def scraper(url, parse):
+class CannotExtract(RPGException):
+    def __init__(self, exn):
+        msg = f'Parsed successfully but could not extract, because: {exn}'
+        super(CannotExtract, self).__init__(msg)
+
+
+def _scraper(url, parse):
     """
     Function that produces a decorator which downloads a web page, parses it,
     and passes the parsed content to the decorated function, whose result it
@@ -43,16 +49,15 @@ def scraper(url, parse):
             parsed_content = parse(raw_content)
             try:
                 return extract(parsed_content)
-            except Exception as e:
-                logging.error(f'Cannot extract from {url}:')
-                raise e
+            except Exception as e:  # for generality, catch all exceptions
+                raise CannotExtract(e)
 
         return go
 
     return decorator
 
 
-json_scraper = partial(scraper, parse=json.loads)
+json_scraper = partial(_scraper, parse=json.loads)
 
-html_scraper = partial(scraper,
+html_scraper = partial(_scraper,
                        parse=lambda html: BeautifulSoup(html, 'html.parser'))

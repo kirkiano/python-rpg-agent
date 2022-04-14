@@ -1,6 +1,4 @@
-aiohttp==3.5.4
-async-timeout==3.0.1
-asyncio==3.4.3
+aiohttp==3.8.1
 attrs==18.2.0
 beautifulsoup4==4.7.1
 brotlipy==0.7.0

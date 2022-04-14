@@ -1,28 +1,29 @@
 import logging
 
+from exn import RPGException
 from model import Char, Exit, NonverbalExpression, Place as PlaceModel, Thing
 
 
-class ServerMessage(object):
-    class CannotParse(Exception):
+class CharMessage(object):
+    class CannotParse(RPGException):
         def __init__(self, jsn, reason):
             self.jsn = jsn
             self.reason = reason
             rsn = reason if isinstance(reason, str) else str(reason)
-            msg = f'Cannot parse {jsn} into a ServerMessage: {rsn}'
-            super(ServerMessage.CannotParse, self).__init__(msg)
+            msg = f'Cannot parse {jsn} into a CharMessage: {rsn}'
+            super(CharMessage.CannotParse, self).__init__(msg)
 
     @staticmethod
-    def from_json(j):
+    def from_object(j):
         try:
-            return ServerMessage._parse_json(j)
+            return CharMessage._parse_dict(j)
         except KeyError as e:
-            logging.warning(f'Ignoring unparseable JSON {j} ({e}).')
+            logging.warning(f'Ignoring unparseable dict {j} ({e}).')
 
     @staticmethod
-    def _parse_json(j):
+    def _parse_dict(j):
         method = '_parse_by_tag' if 'tag' in j else '_parse_by_type'
-        return getattr(ServerMessage, method)(j)
+        return getattr(CharMessage, method)(j)
 
     @staticmethod
     def _parse_by_tag(j):
@@ -31,22 +32,22 @@ class ServerMessage(object):
             cls = globals()[tag]
         except KeyError:
             raise KeyError(f"tag '{tag}' not recognized")
-        return cls.from_json(j)
+        return cls.from_object(j)
 
 
-class Welcome(ServerMessage):
-    def __init__(self, idn, name, desc, health):
-        self.id = idn
+class Welcome(CharMessage):
+    def __init__(self, cid, name, desc, health):
+        self.cid = cid
         self.name = name
         self.desc = desc
         self.health = health
 
     @staticmethod
-    def from_json(j):
+    def from_object(j):
         return Welcome(j['id'], j['name'], j['desc'], j['health'])
 
 
-class Place(ServerMessage):
+class Place(CharMessage):
     """
     Information about the place the player is currently in.
     """
@@ -58,11 +59,11 @@ class Place(ServerMessage):
         self.place = place
 
     @staticmethod
-    def from_json(j):
-        return Place(PlaceModel.from_json(j))
+    def from_object(j):
+        return Place(PlaceModel.from_object(j))
 
 
-class WaysOut(ServerMessage):  # ValueMessage):
+class WaysOut(CharMessage):
     """
     Information about the exits available from the current place.
     """
@@ -74,11 +75,11 @@ class WaysOut(ServerMessage):  # ValueMessage):
         self.exits = exits
 
     @staticmethod
-    def from_json(j):
-        return WaysOut([Exit.from_json(e) for e in j['exits']])
+    def from_object(j):
+        return WaysOut([Exit.from_object(e) for e in j['exits']])
 
 
-class Joined(ServerMessage):
+class Joined(CharMessage):
     """
     A character has joined the game.
     """
@@ -90,11 +91,11 @@ class Joined(ServerMessage):
         self.cid = cid
 
     @staticmethod
-    def from_json(j):
+    def from_object(j):
         return Joined(j['cid'])
 
 
-class Disjoined(ServerMessage):
+class Disjoined(CharMessage):
     """
     A character has left the game.
     """
@@ -106,11 +107,11 @@ class Disjoined(ServerMessage):
         self.cid = cid
 
     @staticmethod
-    def from_json(j):
+    def from_object(j):
         return Disjoined(j['cid'])
 
 
-class Occupants(ServerMessage):
+class Occupants(CharMessage):
     """
     Information about what characters are in the current place.
     """
@@ -122,11 +123,11 @@ class Occupants(ServerMessage):
         self.chars = chars
 
     @staticmethod
-    def from_json(j):
-        return Occupants([Char.from_json(c) for c in j['chars']])
+    def from_object(j):
+        return Occupants([Char.from_object(c) for c in j['chars']])
 
 
-class Contents(ServerMessage):
+class Contents(CharMessage):
     """
     Information about what things are in the current place.
     """
@@ -138,11 +139,11 @@ class Contents(ServerMessage):
         self.things = things
 
     @staticmethod
-    def from_json(j):
-        return Contents([Thing.from_json(e) for e in j['things']])
+    def from_object(j):
+        return Contents([Thing.from_object(e) for e in j['things']])
 
 
-class Said(ServerMessage):
+class Said(CharMessage):
     """
     A character in the current place said something.
     """
@@ -151,11 +152,11 @@ class Said(ServerMessage):
         self.speech = speech
 
     @staticmethod
-    def from_json(j):
+    def from_object(j):
         return Said(j['cid'], j['speech'])
 
 
-class Whispered(ServerMessage):
+class Whispered(CharMessage):
     """
     A character in the current place whispered something to another.
     """
@@ -165,11 +166,11 @@ class Whispered(ServerMessage):
         self.speech = speech
 
     @staticmethod
-    def from_json(j):
+    def from_object(j):
         return Whispered(j['by'], j['to'], j['speech'])
 
 
-class Entered(ServerMessage):
+class Entered(CharMessage):
     """
     A character has entered the current place.
     """
@@ -179,12 +180,12 @@ class Entered(ServerMessage):
         self.exit_id = exit_id
 
     @staticmethod
-    def from_json(j):
+    def from_object(j):
         char = j['chr']
         return Entered(char['id'], char['name'], j['eid'])
 
 
-class Exited(ServerMessage):
+class Exited(CharMessage):
     """
     A character has left the current place.
     """
@@ -193,11 +194,11 @@ class Exited(ServerMessage):
         self.exit_id = exit_id
 
     @staticmethod
-    def from_json(j):
+    def from_object(j):
         return Exited(j['cid'], j['eid'])
 
 
-class Looked(ServerMessage):
+class Looked(CharMessage):
     """
     A character has looked at another.
     """
@@ -211,11 +212,11 @@ class Looked(ServerMessage):
         self.looked_id = looked_id
 
     @staticmethod
-    def from_json(j):
+    def from_object(j):
         return Looked(j['lookerId'], j['lookeeId']['val'])
 
 
-class Expressed(ServerMessage):
+class Expressed(CharMessage):
     """
     A character has looked at another.
     """
@@ -225,12 +226,12 @@ class Expressed(ServerMessage):
         self.nve = nve
 
     @staticmethod
-    def from_json(j):
+    def from_object(j):
         return Expressed(j['by'], j['to'],
                          NonverbalExpression.from_string(j['nve']))
 
 
-class GameOver(ServerMessage, Exception):
+class GameOver(CharMessage, RPGException):
     """
     The game has ended.
     """
@@ -238,21 +239,5 @@ class GameOver(ServerMessage, Exception):
         self.reason = reason
 
     @staticmethod
-    def from_json(j):
+    def from_object(j):
         return GameOver(j['reason'])
-
-
-# class ThingEdited(EventMessage):
-#     """
-#     A Thing has been edited (so you may want to request its description).
-#     """
-#     def __init__(self, thing_id):
-#         """
-#         Args:
-#             thing_id (int):
-#         """
-#         self.thing_id = thing_id
-#
-#     @staticmethod
-#     def from_json(j):
-#         return ThingEdited(j)

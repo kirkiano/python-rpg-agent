@@ -1,5 +1,8 @@
 import argparse
 
+from scrape.bot import ScrapingBot
+from server import TCPServer
+
 
 def parse_args():
     botfile_help = (
@@ -53,4 +56,7 @@ def parse_args():
         default=1200,
         help='Maxmum time (minutes) bot waits before redownloading'
     )
-    return parser.parse_args()
+    args = parser.parse_args()
+    server_address = TCPServer.Address(args.host, args.port)
+    bot_params = ScrapingBot.Params(args.ntitles, args.waitleave, args.waitdl)
+    return server_address, args.botfile, bot_params

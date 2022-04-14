@@ -1,60 +1,63 @@
-import asyncio
 import logging
 import random
 from abc import ABCMeta, abstractmethod
 
-from connect import Connection
+from exn import RPGClientException
+from server.connection import Connection  # noqa: F401
 
 
 class Bot(object):
     """Abstract class implementing a bot."""
     __metaclass__ = ABCMeta
 
-    class NoExit(Exception):
-        pass
+    class NoExit(RPGClientException):
+        def __init__(self, client_name):
+            msg = 'no exit is available from this place'
+            super(Bot.NoExit, self).__init__(client_name, msg)
 
-    def __init__(self, server, credentials, ioloop):
+    def __init__(self, connection, name):
         """
         Args:
-            server (Connection.Server): server that this bot should connect to
-            credentials (Connection.Credentials): credentials to login to
-            server ioloop (asyncio.ioloop):
+            connection (Connection)
+            name (str)
         """
         super(Bot, self).__init__()
-        self.server = server
-        self.credentials = credentials
-        self.ioloop = ioloop
+        self.conn = connection
+        self._name = name
         self.exits = []
-        self.conn = None
+        self._place = None
 
     @property
     def name(self):
-        return self.credentials.user
+        return self._name
+
+    @property
+    def current_place(self):
+        """
+        Returns (Place): current place, or None if not yet Welcomed
+        """
+        return self._place
+
+    @current_place.setter
+    def current_place(self, place):
+        self._place = place
 
     def is_connected(self):
         return bool(self.conn)
-
-    async def connect(self):
-        self.conn = await Connection.login(server=self.server,
-                                           credentials=self.credentials,
-                                           ioloop=self.ioloop)
-        logging.info(f'{self.name} has connected to the RPG server.')
 
     @abstractmethod
     async def run(self):
         """The bot's main action"""
         pass
 
-    async def connect_and_run_safely(self):
+    async def run_safely(self):
         """
         Safety wrapper for run(). Ensures that a crashing bot does not also
         crash the whole program.
         """
         try:
-            desc = f'connect to game at {self.server}'
-            await keep_trying(self.connect, 2, desc)
             await self.run()
-        except Exception as e:
+        except Exception as e:  # for safety, catch all exceptions
             logging.fatal(f'{self.name} crashed: {e}')
 
     async def take_random_exit(self, is_good_exit=lambda _: True):
@@ -67,28 +70,4 @@ class Bot(object):
             chosen_exit = random.choice(valid_exit_ids)
             await self.conn.take_exit(chosen_exit)
         else:
-            raise Bot.NoExit()
-
-
-async def keep_trying(f, wait_secs, desc):
-    """
-    Keep trying to invoke f until it succeeds, ie, until it doesn't throw an
-    exception.
-
-    Args:
-        f (thunk): the computation to keep attempting
-        wait_secs (int): number of seconds to wait before retrying
-        desc (str): grammatical predicate describing f (eg, "connect to db")
-
-    Returns:
-        whatever f returns
-    """
-    n = 1
-    while True:
-        try:
-            return await f()
-        except Exception as e:
-            logging.warning(f'Attempt no. {n} to {desc} has FAILED: {e}.'
-                            f' Retrying in {wait_secs} seconds...')
-            n += 1
-            await asyncio.sleep(wait_secs)
+            raise Bot.NoExit(self.name)

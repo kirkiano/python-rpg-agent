@@ -1,6 +1,8 @@
 from abc import ABC
 from enum import Enum, unique
 
+from exn import RPGException
+
 
 @unique
 class Direction(Enum):
@@ -37,29 +39,6 @@ def code2dxn(code):
         ValueError if `code` is invalid
     """
     return Direction(code)
-    # TODO: delete the following
-    # if code == 'u':
-    #     return Direction.UP
-    # elif code == 'd':
-    #     return Direction.DOWN
-    # elif code == 'n':
-    #     return Direction.NORTH
-    # elif code == 's':
-    #     return Direction.SOUTH
-    # elif code == 'e':
-    #     return Direction.EAST
-    # elif code == 'w':
-    #     return Direction.WEST
-    # elif code == 'ne':
-    #     return Direction.NORTHEAST
-    # elif code == 'nw':
-    #     return Direction.NORTHWEST
-    # elif code == 'se':
-    #     return Direction.SOUTHEAST
-    # elif code == 'sw':
-    #     return Direction.SOUTHWEST
-    # else:
-    #     raise Exception(f'Unknown Direction code: {code}')
 
 
 class RPGObject(ABC):
@@ -82,7 +61,7 @@ class Char(RPGObject):
         self.logged_in = logged_in
 
     @staticmethod
-    def from_json(j, logged_in=None):
+    def from_object(j, logged_in=None):
         idn = j['id'] if 'id' in j else j['cid']
         logged_in = j['loggedIn'] if 'loggedIn' in j else logged_in
         return Char(idn, j['name'], logged_in)
@@ -95,7 +74,7 @@ class Thing(RPGObject):
         self.serial_number = serial_number
 
     @staticmethod
-    def from_json(j):
+    def from_object(j):
         return Thing(j['id'], j['name'], j['serial'])
 
 
@@ -117,7 +96,7 @@ class Address(RPGObject):
         self.country = country
 
     @staticmethod
-    def from_json(j):
+    def from_object(j):
         if j is None:
             return None
 
@@ -151,9 +130,9 @@ class Place(RPGObject):
         self.address = address
 
     @staticmethod
-    def from_json(j):
+    def from_object(j):
         return Place(j['id'], j['name'], j.get('desc'),
-                     Address.from_json(j.get('addr')))
+                     Address.from_object(j.get('addr')))
 
     def __str__(self):
         return self.name + \
@@ -175,9 +154,9 @@ class Exit(RPGObject):
         self.port = port
 
     @staticmethod
-    def from_json(j):
+    def from_object(j):
         dxn = code2dxn(j['dir'])
-        nbr = Place.from_json(j['nbr'])
+        nbr = Place.from_object(j['nbr'])
         return Exit(j['id'], dxn, j['port'], nbr)
 
 
@@ -193,7 +172,7 @@ class NonverbalExpression(Enum):
         elif s.lower() == 'scowl':
             return NonverbalExpression.Scowl
         else:
-            raise Exception(f'Unknown nonverbal expression: {s}')
+            raise RPGException(f'Unknown nonverbal expression: {s}')
 
     def __str__(self):
         return 'smile' if self == NonverbalExpression.Smile else 'scowl'

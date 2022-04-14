@@ -1,7 +1,7 @@
 
 class RPGException(Exception):
     def __init__(self, msg):
-        super(RPGException, self).__init__(f'RPG error: {msg}')
+        super(RPGException, self).__init__(f'RPG exception: {msg}')
 
 
 class RPGClientException(RPGException):

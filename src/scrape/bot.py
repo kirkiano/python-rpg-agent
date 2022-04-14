@@ -5,8 +5,9 @@ import random
 from collections import defaultdict, namedtuple
 
 from bot import Bot
-from connect import Connection
-from message import GameOver, Place, WaysOut
+from server.connection import Connection  # noqa: F401
+from exn import RPGClientException
+from message import GameOver, Place, WaysOut, Welcome
 
 
 class ScrapingBot(Bot):
@@ -15,32 +16,37 @@ class ScrapingBot(Bot):
     # see parse_args for meanings of these params
     Params = namedtuple('Params', 'ntitles, waitleave, waitdl')
 
-    class NotHome(Exception):
-        def __init__(self, address_exp, address_act):
-            self.address_exp = address_exp
-            self.address_act = address_act
-
-        def __str__(self):
-            return f'Expected to be at {self.address_exp},' \
-                   f' not {self.address_act.name}.'
+    class NotHome(RPGClientException):
+        def __init__(self, name, address_exp, address_act):
+            msg = f'Expected to be at {address_exp}, not {address_act.name}.'
+            super(ScrapingBot.NotHome, self).__init__(name, msg)
 
     @staticmethod
-    def create(name, password, server, ioloop, scraper, address, bot_params):
-        creds = Connection.Credentials(name, password)
-        return ScrapingBot(server=server,
-                           credentials=creds,
-                           ioloop=ioloop,
+    async def create(connection, scraper, game_address, bot_params):
+        """
+        Construct a scraping bot
+        Args:
+            connection (Connection): to the server
+            scraper: scraping function
+            game_address (str): the RPG address through which the bot may roam
+            bot_params (ScrapingBot.Params)
+
+        Returns:
+            ScrapingBot
+        """
+        welcome = await connection.wait_for(Welcome)
+        return ScrapingBot(connection=connection,
+                           name=welcome.name,
                            download_func=scraper,
                            params=bot_params,
-                           address_name=address)
+                           address_name=game_address)
 
-    def __init__(self, server, credentials, ioloop, download_func, params,
+    def __init__(self, connection, name, download_func, params,
                  address_name, do_shuffle=True):
         """
         Args:
-            server (Connection.Server): server to log in to
-            credentials (Connection.Credentials): credentials for login
-            ioloop (asyncio.ioloop):
+            connection (Connection): connection to server
+            name (str): name of this bot
             download_func: async func that downloads and scrapes this bot's
                     target content, returning a list of dicts, each having
                     two keys: id & title
@@ -49,13 +55,12 @@ class ScrapingBot(Bot):
                                 bot should be confined
             do_shuffle (bool): randomize the order of headlines
         """
-        super(ScrapingBot, self).__init__(server, credentials, ioloop)
+        super(ScrapingBot, self).__init__(connection, name)
         self.download_func = download_func
         self.params = params
         self.do_shuffle = do_shuffle
         self.headlines = []
         self.seen = defaultdict(set)
-        self.place = None
         self.exits = []
         self.home_address = address_name
         self.is_home = lambda a: a and a.name.lower() == address_name.lower()
@@ -77,11 +82,13 @@ class ScrapingBot(Bot):
             logging.info(f'{self.name} detected game-over: {e}')
 
     async def _run_iteration(self):
-        self.place = (await self.conn.wait_for(Place)).place
-        logging.info(f'{self.name} is now in {self.place}')
+        self.current_place = (await self.conn.wait_for(Place)).place
+        logging.info(f'{self.name} is now in {self.current_place}')
         self.exits = (await self.conn.wait_for(WaysOut)).exits
-        if not self.is_home(self.place.address):
-            raise ScrapingBot.NotHome(self.home_address, self.place.address)
+        if not self.is_home(self.current_place.address):
+            raise ScrapingBot.NotHome(self.name,
+                                      self.home_address,
+                                      self.current_place.address)
         await self._maybe_scrape()
         await self._speak_headlines()
         waiting_period = random.uniform(0, self.params.waitleave)
@@ -100,14 +107,16 @@ class ScrapingBot(Bot):
         if diff > waiting_time:
             self.headlines = await self.download_func()
             self.t_last_download = t_now
-            logging.info(f'{self.conn.user} has downloaded its content.')
+            logging.info(f'{self.name} has downloaded its content.')
 
     async def _speak_headlines(self):
         """
         Announce (at most) the next ntitles headlines.
         """
-        unseen_headlines = [p for p in self.headlines
-                            if p['id'] not in self.seen[self.place.id]]
+        unseen_headlines = [
+            p for p in self.headlines
+            if p['id'] not in self.seen[self.current_place.id]
+        ]
         if self.do_shuffle:
             random.shuffle(unseen_headlines)
         num_headlines_to_speak = min(self.params.ntitles,
@@ -115,5 +124,5 @@ class ScrapingBot(Bot):
         for headline in unseen_headlines[:num_headlines_to_speak]:
             saying = headline['title'].strip()
             await self.conn.say(saying)
-            logging.debug(f'{self.conn.user} has said: {saying}.')
-            self.seen[self.place.id].add(headline['id'])
+            logging.debug(f'{self.name} has said: {saying}.')
+            self.seen[self.current_place.id].add(headline['id'])

@@ -1,15 +1,52 @@
 from abc import ABCMeta, abstractmethod
 
+from exn import RPGException
 
-class Request(object):
+
+class Login(object):
+    """
+    A convenience for authenticating. Notes:
+        1. Untagged, because not a real request to the engine
+        2. The 'details' flag is to be understood implicitly as True.
+    """
+    def __init__(self, username, password):
+        """
+        Args:
+            username (str)
+            password (str)
+        """
+        self.username = username
+        self.password = password
+
+    def to_dict(self):
+        namepass = {
+            'name': self.username,
+            'pass': self.password
+        }
+        return {'NamePassword': namepass}
+
+
+###########################################################
+# char requests
+
+class CharRequest(object):
     __metaclass__ = ABCMeta
+
+    class Unrecognized(RPGException):
+        def __init__(self, cid, obj):
+            msg = f'Char {cid} make unrecognizable request: {obj}'
+            super(CharRequest.Unrecognized, self).__init__(msg)
+
+    @abstractmethod
+    def __eq__(self, other):
+        pass
 
     @abstractmethod
     def to_dict(self):
         pass
 
 
-class TakeExit(Request):
+class TakeExit(CharRequest):
     def __init__(self, exit_id):
         """
         Args:
@@ -17,11 +54,14 @@ class TakeExit(Request):
         """
         self.exit_id = exit_id
 
+    def __eq__(self, other):
+        return self.exit_id == other.exit_id
+
     def to_dict(self):
         return dict(tag='Exit', eid=self.exit_id, details=True)
 
 
-class Say(Request):
+class Say(CharRequest):
     def __init__(self, speech):
         """
         Args:
@@ -29,35 +69,41 @@ class Say(Request):
         """
         self.speech = speech
 
+    def __eq__(self, other):
+        return self.speech == other.speech
+
     def to_dict(self):
         return dict(tag='Say', speech=self.speech)
 
 
-# class WhoAmI(Request):
+###########################################################
+# the stuff below is not needed
+
+# class WhoAmI(CharRequest):
 #
 #     def to_dict(self):
 #         return dict(tag='WhoAmI')
 
 
-# class WhereAmI(Request):
+# class WhereAmI(CharRequest):
 #
 #     def to_dict(self):
 #         return dict(tag='WhereAmI')
 
 
-# class WhatIsHere(Request):
+# class WhatIsHere(CharRequest):
 #
 #     def to_dict(self):
 #         return dict(tag='WhatIsHere')
 
 
-# class HowCanIExit(Request):
+# class HowCanIExit(CharRequest):
 #
 #     def to_dict(self):
 #         return dict(tag='HowCanIExit')
 
 
-# class EditMe(Request):
+# class EditMe(CharRequest):
 #     def __init__(self, new_description):
 #         """
 #         Args:
@@ -69,7 +115,7 @@ class Say(Request):
 #         return dict(tag='EditMe', contents=self.new_description)
 #
 #
-# class DescribeThing(Request):
+# class DescribeThing(CharRequest):
 #     def __init__(self, thing_id):
 #         """
 #         Args:
@@ -81,7 +127,7 @@ class Say(Request):
 #         return dict(tag='DescribeThing', contents=self.thing_id)
 #
 #
-# class Whisper(Request):
+# class Whisper(CharRequest):
 #     def __init__(self, speech, to_id):
 #         """
 #         Args:

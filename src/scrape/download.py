@@ -20,7 +20,7 @@ async def download_web_page(url):
         'Accept-Encoding': 'gzip, deflate, br',
         'DNT': '1',
         'Connection': 'keep-alive',
-        'Upgrade-Insecure-Requests': '1',
+        'Upgrade-Insecure-CharRequests': '1',
     }
     async with aiohttp.request('GET', url, headers=headers) as resp:
         content = await resp.content.read()

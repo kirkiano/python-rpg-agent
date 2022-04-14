@@ -1,8 +1,10 @@
+from exn import RPGException
 
-class MalformedBotfile(Exception):
+
+class MalformedBotfile(RPGException):
     def __init__(self, line):
-        self.line = line
-        self.message = f'botfile malformed at "{line}"'
+        msg = f'botfile malformed at "{line}"'
+        super(RPGException, self).__init__(msg)
 
 
 def parse_botline(line):

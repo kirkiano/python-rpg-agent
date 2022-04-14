@@ -18,4 +18,3 @@ COPY ./requirements/prod.txt requirements/prod.txt
 RUN pip install -r requirements/prod.txt
 
 CMD python src/main.py $PORT $BOTFILE --host $HOST --waitleave $WAITLEAVE
-# CMD ["python", "./test_conn.py"]
