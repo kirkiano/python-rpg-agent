@@ -1,5 +1,5 @@
 
-.PHONY: build run logs login clean cleanall
+.PHONY: build run logs login clean cleanall image_tag
 
 DOCKER_REGISTRY=docker.kirkiano.org
 IMAGE=rpg-perscrapers
