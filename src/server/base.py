@@ -9,7 +9,7 @@ class Server(object):
 
     @abstractmethod
     def __str__(self):
-        pass
+        raise NotImplementedError('Server.__str__ not implemented')
 
     @abstractmethod
     async def connect(self):
@@ -17,7 +17,7 @@ class Server(object):
         Returns:
             Connection
         """
-        pass
+        raise NotImplementedError('Server.connect not implemented')
 
     async def connect_and_login(self, username, password):
         """

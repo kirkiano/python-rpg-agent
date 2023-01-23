@@ -1,7 +1,9 @@
 from abc import ABCMeta, abstractmethod
 
-from message import GameOver
-from request import Login, Say, TakeExit
+from message import GameOver, Ping
+from request import Login, Say, TakeExit, Pong
+
+import logging
 
 
 class Connection(object):
@@ -16,7 +18,7 @@ class Connection(object):
     @abstractmethod
     def server(self):
         """Description of the server to which self is connected (a string)"""
-        pass
+        raise NotImplementedError('Server.server not implemented')
 
     @abstractmethod
     async def send_request(self, request):
@@ -25,7 +27,7 @@ class Connection(object):
             request (CharRequest)
         Returns: None
         """
-        pass
+        raise NotImplementedError('Server.send_request not implemented')
 
     @abstractmethod
     async def recv_message(self):
@@ -34,7 +36,7 @@ class Connection(object):
         Returns:
             CharMessage
         """
-        pass
+        raise NotImplementedError('Server.recv_message not implemented')
 
     async def login(self, username, password):
 
@@ -64,6 +66,8 @@ class Connection(object):
         """
         while True:
             msg = await self.recv_message()
+            if isinstance(msg, Ping):
+                self.send_request(Pong)
             if isinstance(msg, GameOver):
                 raise msg
             if isinstance(msg, cls):
