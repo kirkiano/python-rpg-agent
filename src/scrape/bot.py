@@ -21,6 +21,11 @@ class ScrapingBot(Bot):
             msg = f'Expected to be at {address_exp}, not {address_act.name}.'
             super(ScrapingBot.NotHome, self).__init__(name, msg)
 
+    class CannotScrape(RPGClientException):
+        def __init__(self, name, exn):
+            msg = f'{name} cannot scrape: {exn}'
+            super(ScrapingBot.CannotScrape, self).__init__(name, msg)
+
     @staticmethod
     async def create(connection, scraper, game_address, bot_params):
         """
@@ -124,5 +129,5 @@ class ScrapingBot(Bot):
         for headline in unseen_headlines[:num_headlines_to_speak]:
             saying = headline['title'].strip()
             await self.conn.say(saying)
-            logging.debug(f'{self.name} has said: {saying}.')
+            logging.debug(f'{self.name} says: {saying}.')
             self.seen[self.current_place.id].add(headline['id'])
