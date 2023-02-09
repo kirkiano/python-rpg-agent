@@ -57,6 +57,8 @@ class Bot(object):
         """
         try:
             await self.run()
+        except RPGClientException as e:
+            logging.fatal(f'{self.name} failed: {e}')
         except Exception as e:  # for safety, catch all exceptions
             logging.fatal(f'{self.name} crashed: {e}')
 

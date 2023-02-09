@@ -129,5 +129,5 @@ class ScrapingBot(Bot):
         for headline in unseen_headlines[:num_headlines_to_speak]:
             saying = headline['title'].strip()
             await self.conn.say(saying)
-            logging.debug(f'{self.name} says: {saying}.')
+            logging.info(f'{self.name} says: {saying}.')
             self.seen[self.current_place.id].add(headline['id'])
