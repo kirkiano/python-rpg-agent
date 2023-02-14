@@ -1,4 +1,6 @@
 from abc import ABCMeta, abstractmethod
+from asyncio import Queue
+import logging
 
 from message import GameOver, Ping
 from request import Login, Say, TakeExit, Pong
@@ -15,9 +17,17 @@ class Connection(object):
             msg = f'Cannot receive: {exn}'
             super(Connection.CannotReceive, self).__init__(msg)
 
+    class NotUnicode(RPGException):
+        def __init__(self, line):
+            msg = f'Not Unicode: {line}'
+            super(Connection.NotUnicode, self).__init__(msg)
+
     class EOF(RPGException):
         def __init__(self):
             super(Connection.EOF, self).__init__('EOF')
+
+    def __init__(self):
+        self.queue = Queue()
 
     def __str__(self):
         return f"Connection to {self.server}"
@@ -38,13 +48,24 @@ class Connection(object):
         raise NotImplementedError('Server.send_request not implemented')
 
     @abstractmethod
-    async def recv_message(self):
+    async def _recv_message(self):
         """
-        Get the next CharMessage from the server
+        Get the next CharMessage from the server.
+        Used by self.handle_next_message. Not meant to be used by clients.
+
         Returns:
             CharMessage
         """
         raise NotImplementedError('Server.recv_message not implemented')
+
+    @abstractmethod
+    async def dequeue_next_non_ping_message(self):
+        """
+        Get the next CharMessage from the server that is not a Ping
+        Returns:
+            CharMessage
+        """
+        return await self.queue.get()
 
     async def login(self, username, password):
         """
@@ -72,13 +93,33 @@ class Connection(object):
             CharMessage
         """
         while True:
-            msg = await self.recv_message()
-            if isinstance(msg, Ping):
-                self.send_request(Pong)
-            elif isinstance(msg, GameOver):
+            msg = await self.dequeue_next_non_ping_message()
+            if isinstance(msg, GameOver):
                 raise msg
             elif isinstance(msg, cls):
                 return msg
+
+    async def handle_next_message(self):
+        """
+        Fills the queue with the next incoming (non-Ping) messages.
+        To be run in a separate task, inside an infinite loop.
+        """
+        msg = await self._recv_message()
+        logging.debug(f'Received {msg}')
+        if isinstance(msg, Ping):
+            logging.debug('About to pong')
+            await self.send_request(Pong())
+            logging.debug('Sent pong')
+        else:
+            logging.debug(f'About to enqueue {msg}')
+            await self.queue.put(msg)
+            logging.debug(f'Enqueued {msg}')
+
+    async def enqueue_non_ping_messages(self):
+        """To be run as a separate task"""
+        logging.debug(f'Perpetually enqueuing non-ping messages')
+        while True:
+            await self.handle_next_message()
 
     #######################################################
     # requests

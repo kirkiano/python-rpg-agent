@@ -1,3 +1,4 @@
+
 import logging
 import random
 from abc import ABCMeta, abstractmethod
@@ -55,6 +56,7 @@ class Bot(object):
         Safety wrapper for run(). Ensures that a crashing bot does not also
         crash the whole program.
         """
+        logging.info(f'{self.name} now running')
         try:
             await self.run()
         except RPGClientException as e:

@@ -87,6 +87,7 @@ class ScrapingBot(Bot):
             logging.info(f'{self.name} detected game-over: {e}')
 
     async def _run_iteration(self):
+        # logging.debug(f'{self.name} beginning run iteration')
         self.current_place = (await self.conn.wait_for(Place)).place
         logging.info(f'{self.name} is now in {self.current_place}')
         self.exits = (await self.conn.wait_for(WaysOut)).exits
@@ -105,6 +106,7 @@ class ScrapingBot(Bot):
         Download and scrape the target content if enough time has passed since
         the last time it was scraped.
         """
+        # logging.debug(f'{self.name} about to scrape (maybe)')
         t_now = datetime.datetime.now()
         wait_to_download = random.uniform(0, self.params.waitdl)
         waiting_time = datetime.timedelta(minutes=wait_to_download)
@@ -118,6 +120,7 @@ class ScrapingBot(Bot):
         """
         Announce (at most) the next ntitles headlines.
         """
+        # logging.debug(f'{self.name} about to speak headline')
         unseen_headlines = [
             p for p in self.headlines
             if p['id'] not in self.seen[self.current_place.id]
@@ -128,6 +131,7 @@ class ScrapingBot(Bot):
                                      len(unseen_headlines))
         for headline in unseen_headlines[:num_headlines_to_speak]:
             saying = headline['title'].strip()
+            # logging.debug(f'{self.name} about to speak')
             await self.conn.say(saying)
-            logging.info(f'{self.name} says: {saying}.')
+            # logging.info(f'{self.name} says: {saying}.')
             self.seen[self.current_place.id].add(headline['id'])
