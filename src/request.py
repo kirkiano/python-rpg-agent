@@ -77,7 +77,9 @@ class Say(CharRequest):
 
 
 class Pong(CharRequest):
-    pass
+    def to_dict(self):
+        return dict(tag='Pong')
+
 
 ###########################################################
 # the stuff below is not needed

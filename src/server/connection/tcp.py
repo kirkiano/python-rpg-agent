@@ -33,7 +33,7 @@ class TCPConnection(Connection):
         self.writer.write((j + '\r\n').encode('utf-8'))
         await self.writer.drain()
 
-    async def recv_message(self):
+    async def _recv_message(self):
         """See superclass docstring"""
         bytes = await self.reader.readline()
         logging.debug(f'Received bytes: {bytes}')
@@ -42,10 +42,10 @@ class TCPConnection(Connection):
         try:
             line = bytes.decode('utf-8')
         except UnicodeError as e:
-            raise Connection.CannotReceive(e)
+            raise Connection.NotUnicode(line)
         else:
             if line.strip() == 'null':
-                return Ping
+                return Ping()
             else:
                 try:
                     d = json.loads(line)

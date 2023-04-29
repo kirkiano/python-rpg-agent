@@ -1,16 +1,18 @@
 
 import asyncio
+import logging
 
 from log import init_logs
 from args import parse_args
-from scrape import get_scraping_bots
+from scrape import get_scraping_bot_tasks
 from server import TCPServer
 
 
 async def main(server_address, botfile, bot_params):
     server = TCPServer(server_address)
-    bots = await get_scraping_bots(server, botfile, bot_params)
-    tasks = [asyncio.create_task(bot.run_safely()) for bot in bots]
+    task_pairs = await get_scraping_bot_tasks(server, botfile, bot_params)
+    tasks = [task for pair in task_pairs for task in pair]
+    logging.info(f'Running {len(tasks)} tasks')
     await asyncio.gather(*tasks)
 
 
