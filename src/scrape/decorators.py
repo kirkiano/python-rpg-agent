@@ -11,6 +11,12 @@ from exn import RPGException
 from .download import download_web_page
 
 
+class CannotParseHTML(RPGException):
+    def __init__(self, exn):
+        msg = f'Cannot parse HTML: {exn}'
+        super(CannotParseHTML, self).__init__(msg)
+
+
 class CannotExtract(RPGException):
     def __init__(self, exn):
         msg = f'Parsed successfully but could not extract, because: {exn}'
@@ -46,11 +52,15 @@ def _scraper(url, parse):
         @wraps(extract)
         async def go():
             raw_content = await download_web_page(url)
-            parsed_content = parse(raw_content)
-            try:
-                return extract(parsed_content)
-            except Exception as e:  # for generality, catch all exceptions
-                raise CannotExtract(e)
+            try: # apparently try/except creates no new scope in Python
+                parsed_content = parse(raw_content)
+            except Exception as e:
+                raise CannotParseHTML(e)
+            else:
+                try:
+                    return extract(parsed_content)
+                except Exception as e:  # for generality, catch all exceptions
+                    raise CannotExtract(e)
 
         return go
 

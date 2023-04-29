@@ -1,6 +1,7 @@
 from uuid import uuid4
 
 from scrape import html_scraper
+from scrape.util import find_all
 
 
 def _scrape_aps(soup):
@@ -38,7 +39,7 @@ def scrape_apsphysics(soup):
 @html_scraper('https://physicstoday.scitation.org/journal/pto')
 def scrape_physicstoday(soup):
     return [dict(id=uuid4(), title=tag.text)
-            for tag in soup.find_all(class_='title')]
+            for tag in find_all(soup, class_='title')]
 
 
 SCRAPERS += [
