@@ -7,7 +7,7 @@ from scrape import html_scraper
 def scrape_sciencemag(soup):
 
     def selector(a):
-        return a and a.startswith('media__headline')
+        return a and a.startswith('card__title')
 
     tags = soup.find_all(class_=selector)
     headlines = [dict(id=uuid4(), title=tag.text) for tag in tags]

@@ -19,6 +19,8 @@ flake8:
 	flake8 src # --application-import-names appnexus
 
 test:
+	cd src; python -m unittest get_bots.TestBotfile -v
+	cd src; python -m unittest action.blab.TestBlabbingAction -v
 	python -m unittest discover -s src -p "test_*.py" -v
 
 doc:

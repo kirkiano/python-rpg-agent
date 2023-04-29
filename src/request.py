@@ -18,6 +18,9 @@ class Login(object):
         self.username = username
         self.password = password
 
+    def __str__(self):
+        return f'Login as {self.username}'
+
     def to_dict(self):
         namepass = {
             'name': self.username,
@@ -36,6 +39,9 @@ class CharRequest(object):
         def __init__(self, cid, obj):
             msg = f'Char {cid} make unrecognizable request: {obj}'
             super(CharRequest.Unrecognized, self).__init__(msg)
+
+    def __str__(self):
+        return f'{self.__dict__}'
 
     @abstractmethod
     def __eq__(self, other):
@@ -57,6 +63,9 @@ class TakeExit(CharRequest):
     def __eq__(self, other):
         return self.exit_id == other.exit_id
 
+    def __str__(self):
+        return f'TakeExit({self.exit_id})'
+
     def to_dict(self):
         return dict(tag='Exit', eid=self.exit_id, details=True)
 
@@ -72,11 +81,21 @@ class Say(CharRequest):
     def __eq__(self, other):
         return self.speech == other.speech
 
+    def __str__(self):
+        return f'Say: "{self.speech}"'
+
     def to_dict(self):
         return dict(tag='Say', speech=self.speech)
 
 
 class Pong(CharRequest):
+
+    def __eq__(self, other):
+        return isinstance(other, Pong)
+
+    def __str__(self):
+        return 'Pong'
+
     def to_dict(self):
         return dict(tag='Pong')
 

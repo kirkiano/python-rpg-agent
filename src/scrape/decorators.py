@@ -51,7 +51,7 @@ def _scraper(url, parse):
         @wraps(extract)
         async def go():
             raw_content = await download_web_page(url)
-            try: # apparently try/except creates no new scope in Python
+            try:  # apparently try/except creates no new scope in Python
                 parsed_content = parse(raw_content)
             except Exception as e:
                 raise CannotParseHTML(e)

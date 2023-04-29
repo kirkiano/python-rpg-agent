@@ -1,3 +1,4 @@
+from abc import abstractmethod
 import logging
 
 from exn import RPGException
@@ -5,6 +6,7 @@ from model import Char, Exit, NonverbalExpression, Place as PlaceModel, Thing
 
 
 class CharMessage(object):
+
     class CannotParse(RPGException):
         def __init__(self, jsn, reason):
             self.jsn = jsn
@@ -15,7 +17,7 @@ class CharMessage(object):
 
     class NoExits(CannotParse):
         def __init__(self, jsn):
-            super(CharMessage.NoExits, self).__init(jsn, "no exits")
+            super().__init__(jsn, "no exits")
 
     @staticmethod
     def from_object(j):
@@ -38,6 +40,10 @@ class CharMessage(object):
             raise KeyError(f"tag '{tag}' not recognized")
         return cls.from_object(j)
 
+    @abstractmethod
+    def __str__(self):
+        raise NotImplementedError('CharMessage.__str__ not implemented')
+
 
 class Welcome(CharMessage):
     def __init__(self, cid, name, desc, health):
@@ -49,6 +55,11 @@ class Welcome(CharMessage):
     @staticmethod
     def from_object(j):
         return Welcome(j['id'], j['name'], j['desc'], j['health'])
+
+    def __str__(self):
+        return (f'Welcome, {self.name}. Your ID is {self.cid}, ' +
+                f'your health is {self.health}, ' +
+                f'and your description is: {self.desc}')
 
 
 class Place(CharMessage):
@@ -66,6 +77,9 @@ class Place(CharMessage):
     def from_object(j):
         return Place(PlaceModel.from_object(j))
 
+    def __str__(self):
+        return f'Your location is: {self.place}'
+
 
 class WaysOut(CharMessage):
     """
@@ -82,9 +96,13 @@ class WaysOut(CharMessage):
     def from_object(j):
         exits = j['exits']
         if not exits:
-            raise CharMessage.NoExits()
+            raise CharMessage.NoExits(j)
         else:
             return WaysOut([Exit.from_object(e) for e in exits])
+
+    def __str__(self):
+        return (f'Your ways out are: {" || ".join(map(str, self.exits))}'
+                if self.exits else 'You have no ways out')
 
 
 class Joined(CharMessage):
@@ -102,6 +120,9 @@ class Joined(CharMessage):
     def from_object(j):
         return Joined(j['cid'])
 
+    def __str__(self):
+        return f'Char with ID {self.cid} has joined the game'
+
 
 class Disjoined(CharMessage):
     """
@@ -117,6 +138,9 @@ class Disjoined(CharMessage):
     @staticmethod
     def from_object(j):
         return Disjoined(j['cid'])
+
+    def __str__(self):
+        return f'Char with ID {self.cid} has left the game'
 
 
 class Occupants(CharMessage):
@@ -134,6 +158,10 @@ class Occupants(CharMessage):
     def from_object(j):
         return Occupants([Char.from_object(c) for c in j['chars']])
 
+    def __str__(self):
+        return (f'With you here are: {", ".join(map(str, self.chars))}'
+                if self.chars else 'There is no one else here.')
+
 
 class Contents(CharMessage):
     """
@@ -150,6 +178,10 @@ class Contents(CharMessage):
     def from_object(j):
         return Contents([Thing.from_object(e) for e in j['things']])
 
+    def __str__(self):
+        return (f'Things here are: {"".join(map(str, self.things))}'
+                if self.things else 'There is nothing here')
+
 
 class Said(CharMessage):
     """
@@ -162,6 +194,9 @@ class Said(CharMessage):
     @staticmethod
     def from_object(j):
         return Said(j['cid'], j['speech'])
+
+    def __str__(self):
+        return f'Char {self.cid} said, "{self.speech}"'
 
 
 class Whispered(CharMessage):
@@ -176,6 +211,10 @@ class Whispered(CharMessage):
     @staticmethod
     def from_object(j):
         return Whispered(j['by'], j['to'], j['speech'])
+
+    def __str__(self):
+        whisp = f' ("{self.speech}")' if self.speech else ''
+        return f'Char {self.by} whispered to char {self.to}{whisp}'
 
 
 class Entered(CharMessage):
@@ -192,6 +231,10 @@ class Entered(CharMessage):
         char = j['chr']
         return Entered(char['id'], char['name'], j['eid'])
 
+    def __str__(self):
+        eid = self.exit_id
+        return f'{self.name} (char {self.cid}) entered through exit {eid}'
+
 
 class Exited(CharMessage):
     """
@@ -205,23 +248,29 @@ class Exited(CharMessage):
     def from_object(j):
         return Exited(j['cid'], j['eid'])
 
+    def __str__(self):
+        return f'Char {self.cid} left through exit {self.exit_id}'
+
 
 class Looked(CharMessage):
     """
     A character has looked at another.
     """
-    def __init__(self, looker_id, looked_id):
+    def __init__(self, looker_id, lookee_id):
         """
         Args:
             looker_id (int):
-            looked_id (int):
+            lookee_id (int):
         """
         self.looker_id = looker_id
-        self.looked_id = looked_id
+        self.lookee_id = lookee_id
 
     @staticmethod
     def from_object(j):
         return Looked(j['lookerId'], j['lookeeId']['val'])
+
+    def __str__(self):
+        return f'Char {self.looker_id} looked at {self.lookee_id}'
 
 
 class Expressed(CharMessage):
@@ -238,9 +287,13 @@ class Expressed(CharMessage):
         return Expressed(j['by'], j['to'],
                          NonverbalExpression.from_string(j['nve']))
 
+    def __str__(self):
+        return f'Char {self.by} {self.nve.past_tense()} at char {self.to}'
+
 
 class Ping(CharMessage):
-    pass
+    def __str__(self):
+        return 'Ping'
 
 
 class GameOver(CharMessage, RPGException):
@@ -253,3 +306,7 @@ class GameOver(CharMessage, RPGException):
     @staticmethod
     def from_object(j):
         return GameOver(j['reason'])
+
+    def __str__(self):
+        rsn = f' ({self.reason})' if self.reason else ''
+        return f'Game over{rsn}'

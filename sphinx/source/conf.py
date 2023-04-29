@@ -18,6 +18,7 @@ sys.path.insert(0, os.path.abspath('../..'))
 # -- Project information -----------------------------------------------------
 
 project = 'RPG Periodical Scrapers'
+# noinspection PyShadowingBuiltins
 copyright = '2019, Kirkian O'
 author = 'Kirkian O'
 

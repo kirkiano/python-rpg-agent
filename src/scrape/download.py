@@ -3,7 +3,7 @@ import aiohttp
 
 async def download_web_page(url):
     """
-    Download web content.
+    Download web content, pretending to be a Firefox web browser.
 
     Args:
         url (str): URL to fetch
@@ -12,8 +12,11 @@ async def download_web_page(url):
         bytes: the body of the HTTP response
     """
     headers = {
-        'User-Agent': ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:55.0)'
-                       ' Gecko/20100101 Firefox/55.0'),
+        #'User-Agent': ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:55.0)'
+        #               ' Gecko/20100101 Firefox/55.0'),
+        'User-Agent': ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) '
+                       'AppleWebKit/537.36 (KHTML, like Gecko) '
+                       'Chrome/112.0.0.0 Safari/537.36'),
         'Accept': ('text/html,application/xhtml+xml,application/xml;'
                    'q=0.9,*/*;q=0.8'),
         'Accept-Language': 'en-US,en;q=0.5',
@@ -23,5 +26,4 @@ async def download_web_page(url):
         'Upgrade-Insecure-CharRequests': '1',
     }
     async with aiohttp.request('GET', url, headers=headers) as resp:
-        content = await resp.content.read()
-        return content
+        return await resp.content.read()

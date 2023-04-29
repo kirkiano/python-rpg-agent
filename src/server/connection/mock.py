@@ -1,33 +1,45 @@
-import asyncio_channel
+import asyncio
 
-from server import Connection
+from .base import Connection
 
 
 class MockConnection(Connection):
 
-    @staticmethod
-    def create(channel_size=16):
-        requests = asyncio_channel.create_channel(channel_size)
-        messages = asyncio_channel.create_channel(channel_size)
-        return MockConnection(requests, messages)
-
-    def __init__(self, requests, messages):
-        """
-        Args:
-            requests (channel)
-            messages (channel)
-        """
-        self.requests = requests
-        self.messages = messages
+    def __init__(self):
+        super().__init__()
+        self._reqs = []
+        self._msgs = []
+        self._reqs_lock = asyncio.Lock()
+        self._msgs_lock = asyncio.Lock()
 
     @property
     def server(self):
         return "mock server"
 
     async def send_request(self, request):
-        """See superclass docstring"""
-        await self.requests.put(request)
+        """
+        See superclass docstring
+        """
+        async with self._reqs_lock:
+            self._reqs.append(request)
 
     async def recv_message(self):
-        """See superclass docstring"""
-        return await self.messages.take()
+        """
+        See superclass docstring
+        """
+        async with self._msgs_lock:
+            return self._msgs.pop(0)
+
+    async def dequeue_request(self):
+        """
+        Dequeue the next Request sent via this mock connection.
+        """
+        async with self._reqs_lock:
+            return self._reqs.pop(0)
+
+    async def enqueue_message(self, message):
+        """
+        Enqueue a Message to be received via this mock connection.
+        """
+        async with self._msgs_lock:
+            return self._msgs.append(message)

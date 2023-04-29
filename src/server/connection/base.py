@@ -1,41 +1,58 @@
 from abc import ABCMeta, abstractmethod
-from asyncio import Queue
 import logging
 
 from message import GameOver, Ping
-from request import Login, Say, TakeExit, Pong
+from request import Login, Pong
 from exn import RPGException
 
 
 class Connection(object):
-    """Represents a connection to the RPG server"""
+    """
+    Abstract class representing a connection to the RPG server
+    """
 
     __metaclass__ = ABCMeta
 
     class CannotReceive(RPGException):
+        """
+        Cannot receive the next message from the server
+        """
         def __init__(self, exn):
             msg = f'Cannot receive: {exn}'
             super(Connection.CannotReceive, self).__init__(msg)
 
     class NotUnicode(RPGException):
-        def __init__(self, line):
-            msg = f'Not Unicode: {line}'
+        """
+        Cannot decode the bytes that came from the server into Unicode
+        """
+        def __init__(self, bs):
+            """
+            Args:
+                bs (bytes): the sequence of bytes that fails to be Unicode
+            """
+            msg = f'Not Unicode: {bs}'
             super(Connection.NotUnicode, self).__init__(msg)
 
     class EOF(RPGException):
+        """
+        Connection closed
+        """
         def __init__(self):
             super(Connection.EOF, self).__init__('EOF')
 
     def __init__(self):
-        self.queue = Queue()
+        self.username = None
 
     def __str__(self):
-        return f"Connection to {self.server}"
+        maybe_user = f"{self.username}'s" if self.username else ""
+        return f'{maybe_user}connection to {self.server}'
 
     @property
     @abstractmethod
     def server(self):
-        """Description of the server to which self is connected (a string)"""
+        """
+        Description of the server to which self is connected (a string)
+        """
         raise NotImplementedError('Server.server not implemented')
 
     @abstractmethod
@@ -48,24 +65,30 @@ class Connection(object):
         raise NotImplementedError('Server.send_request not implemented')
 
     @abstractmethod
-    async def _recv_message(self):
+    async def recv_message(self):
         """
         Get the next CharMessage from the server.
-        Used by self.handle_next_message. Not meant to be used by clients.
 
         Returns:
             CharMessage
         """
+        # Used by self.handle_next_message. Not meant to be used by clients.
         raise NotImplementedError('Server.recv_message not implemented')
 
-    @abstractmethod
-    async def dequeue_next_non_ping_message(self):
+    async def recv_non_ping_message(self):
         """
-        Get the next CharMessage from the server that is not a Ping
+        Convenience that filters out incoming Pings, by responding
+        to them with Pongs.
         Returns:
             CharMessage
         """
-        return await self.queue.get()
+        while True:
+            msg = await self.recv_message()
+            logging.debug(f'{self.username} received {msg}')
+            if isinstance(msg, Ping):
+                await self.send_request(Pong())
+            else:
+                return msg
 
     async def login(self, username, password):
         """
@@ -77,6 +100,7 @@ class Connection(object):
         """
         login_request = Login(username, password)
         await self.send_request(login_request)
+        self.username = username
 
     async def wait_for(self, cls):
         """
@@ -86,46 +110,15 @@ class Connection(object):
         If GameOver is received, then raise it as an Exception
 
         Args:
-            cls (type): one of the subclasses of CharMessage. This is the
-                        type of message to return, if received.
+            cls (type): a subclass of CharMessage that is not Ping. This
+                        is the type of message to return, if received.
 
         Returns:
             CharMessage
         """
         while True:
-            msg = await self.dequeue_next_non_ping_message()
+            msg = await self.recv_non_ping_message()
             if isinstance(msg, GameOver):
                 raise msg
             elif isinstance(msg, cls):
                 return msg
-
-    async def handle_next_message(self):
-        """
-        Fills the queue with the next incoming (non-Ping) messages.
-        To be run in a separate task, inside an infinite loop.
-        """
-        msg = await self._recv_message()
-        logging.debug(f'Received {msg}')
-        if isinstance(msg, Ping):
-            logging.debug('About to pong')
-            await self.send_request(Pong())
-            logging.debug('Sent pong')
-        else:
-            logging.debug(f'About to enqueue {msg}')
-            await self.queue.put(msg)
-            logging.debug(f'Enqueued {msg}')
-
-    async def enqueue_non_ping_messages(self):
-        """To be run as a separate task"""
-        logging.debug(f'Perpetually enqueuing non-ping messages')
-        while True:
-            await self.handle_next_message()
-
-    #######################################################
-    # requests
-
-    async def take_exit(self, eid):
-        await self.send_request(TakeExit(eid))
-
-    async def say(self, speech):
-        await self.send_request(Say(speech))

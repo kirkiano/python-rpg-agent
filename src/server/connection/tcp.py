@@ -1,7 +1,7 @@
 import json
 
 from message import CharMessage, Ping
-from server.connection.base import Connection
+from .base import Connection
 
 import logging
 
@@ -33,16 +33,18 @@ class TCPConnection(Connection):
         self.writer.write((j + '\r\n').encode('utf-8'))
         await self.writer.drain()
 
-    async def _recv_message(self):
+    async def recv_message(self):
         """See superclass docstring"""
-        bytes = await self.reader.readline()
-        logging.debug(f'Received bytes: {bytes}')
-        if not bytes:  # empty byte string
+        bs = await self.reader.readline()
+        # logging.debug(f'Received bytes: {bs}')
+        if not bs:  # empty byte string
             raise Connection.EOF()
         try:
-            line = bytes.decode('utf-8')
-        except UnicodeError as e:
-            raise Connection.NotUnicode(line)
+            line = bs.decode('utf-8')
+        except UnicodeError:
+            raise Connection.NotUnicode(bs)
+        # The 'else', though strictly unnecessary, reassures
+        # the reader that 'line' is still in scope.
         else:
             if line.strip() == 'null':
                 return Ping()

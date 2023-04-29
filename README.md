@@ -13,7 +13,11 @@ periodicals and announces them in specific addresses in the RPG.
 
 The Makefile includes targets that run the program, with or without
 Docker. Command-line arguments are explained by running
-`python src/main.py -h`.
+`python src/main.py -h`. Note that `waitleave`, the maximum time a bot
+will wait before moving to a neighbor, should be set long enough to
+give the asynchronous tasks time to respond to the server's pings,
+otherwise the server will time the connection out. (That timeout too
+should be set long enough.) 
 
 ## Environment variables
 

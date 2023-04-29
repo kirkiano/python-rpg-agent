@@ -5,7 +5,8 @@ from scrape import html_scraper
 
 @html_scraper('https://junkscience.com')
 def scrape_junkscience(soup):
-    tags = soup.find_all('h2', {'class': 'entry-title'})
+    # tags = soup.find_all('h2', {'class': 'entry-title'})
+    tags = soup.find_all('li')
     return [dict(id=uuid4(), title=t.text) for t in tags]
 
 

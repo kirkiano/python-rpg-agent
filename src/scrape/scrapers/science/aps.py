@@ -21,11 +21,8 @@ for bot_name in ('pra', 'prb', 'prc', 'prd', 'pre', 'prl', 'prx', 'rmp'):
 
 @html_scraper('https://www.aps.org/publications/apsnews/index.cfm')
 def scrape_apsnews(soup):
-    sections = soup.find_all(class_='featured-page')
-    tags = []
-    for section in sections:
-        tags += [dict(id=uuid4(), title=tag.text)
-                 for tag in section.find_all('a')]
+    tags = [dict(id=uuid4(), title=tag.text)
+            for tag in soup.find_all(class_='CS_Textblock_Text')]
     return tags
 
 
@@ -38,8 +35,10 @@ def scrape_apsphysics(soup):
 
 @html_scraper('https://physicstoday.scitation.org/journal/pto')
 def scrape_physicstoday(soup):
+    def selector(a):
+        return a and a.find('title') != -1
     return [dict(id=uuid4(), title=tag.text)
-            for tag in find_all(soup, class_='title')]
+            for tag in find_all(soup, class_=selector)]
 
 
 SCRAPERS += [
