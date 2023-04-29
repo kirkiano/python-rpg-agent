@@ -27,6 +27,7 @@ class TCPConnection(Connection):
 
     async def send_request(self, request):
         """See superclass docstring"""
+        logging.debug(f'Sending: {request}')
         d = request.to_dict()
         j = json.dumps(d)
         self.writer.write((j + '\r\n').encode('utf-8'))
@@ -34,10 +35,21 @@ class TCPConnection(Connection):
 
     async def recv_message(self):
         """See superclass docstring"""
-        line = await self.reader.readline()
-        line = line.decode('utf-8')
-        if line.strip() == 'null':
-            return Ping
+        bytes = await self.reader.readline()
+        logging.debug(f'Received bytes: {bytes}')
+        if not bytes:  # empty byte string
+            raise Connection.EOF()
+        try:
+            line = bytes.decode('utf-8')
+        except UnicodeError as e:
+            raise Connection.CannotReceive(e)
         else:
-            d = json.loads(line)
-            return CharMessage.from_object(d)
+            if line.strip() == 'null':
+                return Ping
+            else:
+                try:
+                    d = json.loads(line)
+                except json.JSONDecodeError as e:
+                    raise Connection.CannotReceive(e)
+                else:
+                    return CharMessage.from_object(d)

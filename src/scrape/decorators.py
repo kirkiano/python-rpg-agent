@@ -7,17 +7,16 @@ from functools import partial, wraps
 
 from bs4 import BeautifulSoup
 
-from exn import RPGException
 from .download import download_web_page
 
 
-class CannotParseHTML(RPGException):
+class CannotParseHTML(Exception):
     def __init__(self, exn):
         msg = f'Cannot parse HTML: {exn}'
         super(CannotParseHTML, self).__init__(msg)
 
 
-class CannotExtract(RPGException):
+class CannotExtract(Exception):
     def __init__(self, exn):
         msg = f'Parsed successfully but could not extract, because: {exn}'
         super(CannotExtract, self).__init__(msg)
