@@ -39,11 +39,11 @@ class CharRequest(object):
 
     @abstractmethod
     def __eq__(self, other):
-        pass
+        raise NotImplementedError('CharRequest.__eq__ not implemented')
 
     @abstractmethod
     def to_dict(self):
-        pass
+        raise NotImplementedError('CharRequest.to_dict not implemented')
 
 
 class TakeExit(CharRequest):
@@ -75,6 +75,9 @@ class Say(CharRequest):
     def to_dict(self):
         return dict(tag='Say', speech=self.speech)
 
+
+class Pong(CharRequest):
+    pass
 
 ###########################################################
 # the stuff below is not needed

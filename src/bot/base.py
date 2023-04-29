@@ -48,7 +48,7 @@ class Bot(object):
     @abstractmethod
     async def run(self):
         """The bot's main action"""
-        pass
+        raise NotImplementedError('Bot.run not implemented')
 
     async def run_safely(self):
         """

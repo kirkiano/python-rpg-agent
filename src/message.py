@@ -13,6 +13,10 @@ class CharMessage(object):
             msg = f'Cannot parse {jsn} into a CharMessage: {rsn}'
             super(CharMessage.CannotParse, self).__init__(msg)
 
+    class NoExits(CannotParse):
+        def __init__(self, jsn):
+            super(CharMessage.NoExits, self).__init(jsn, "no exits")
+
     @staticmethod
     def from_object(j):
         try:
@@ -76,7 +80,11 @@ class WaysOut(CharMessage):
 
     @staticmethod
     def from_object(j):
-        return WaysOut([Exit.from_object(e) for e in j['exits']])
+        exits = j['exits']
+        if not exits:
+            raise CharMessage.NoExits()
+        else:
+            return WaysOut([Exit.from_object(e) for e in exits])
 
 
 class Joined(CharMessage):
@@ -229,6 +237,10 @@ class Expressed(CharMessage):
     def from_object(j):
         return Expressed(j['by'], j['to'],
                          NonverbalExpression.from_string(j['nve']))
+
+
+class Ping(CharMessage):
+    pass
 
 
 class GameOver(CharMessage, RPGException):

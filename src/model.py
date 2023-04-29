@@ -2,6 +2,7 @@ from abc import ABC
 from enum import Enum, unique
 
 from exn import RPGException
+import logging
 
 
 @unique

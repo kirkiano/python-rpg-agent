@@ -1,7 +1,9 @@
 import json
 
-from message import CharMessage
+from message import CharMessage, Ping
 from server.connection.base import Connection
+
+import logging
 
 
 class TCPConnection(Connection):
@@ -33,5 +35,9 @@ class TCPConnection(Connection):
     async def recv_message(self):
         """See superclass docstring"""
         line = await self.reader.readline()
-        d = json.loads(line.decode('utf-8'))
-        return CharMessage.from_object(d)
+        line = line.decode('utf-8')
+        if line.strip() == 'null':
+            return Ping
+        else:
+            d = json.loads(line)
+            return CharMessage.from_object(d)
