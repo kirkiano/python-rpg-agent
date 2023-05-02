@@ -1,4 +1,4 @@
-FROM python:3.7.7-alpine3.10
+FROM python:3.11.3-alpine3.17
 
 RUN apk add gcc g++ musl-dev libffi-dev py3-cffi
 # py3-virtualenv
