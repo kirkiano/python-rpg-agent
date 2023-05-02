@@ -1,9 +1,11 @@
 import json
+import logging
 
 from message import CharMessage, Ping
 from .base import Connection
 
-import logging
+
+logger = logging.getLogger('TCP')
 
 
 class TCPConnection(Connection):
@@ -27,16 +29,17 @@ class TCPConnection(Connection):
 
     async def send_request(self, request):
         """See superclass docstring"""
-        logging.debug(f'Sending: {request}')
         d = request.to_dict()
         j = json.dumps(d)
-        self.writer.write((j + '\r\n').encode('utf-8'))
+        bs = (j + '\r\n').encode('utf-8')
+        logger.debug(f'{self.username} sending: {bs}')
+        self.writer.write(bs)
         await self.writer.drain()
 
     async def recv_message(self):
         """See superclass docstring"""
         bs = await self.reader.readline()
-        # logging.debug(f'Received bytes: {bs}')
+        logger.debug(f'{self.username} received: {bs}')
         if not bs:  # empty byte string
             raise Connection.EOF()
         try:
@@ -51,7 +54,6 @@ class TCPConnection(Connection):
             else:
                 try:
                     d = json.loads(line)
-                except json.JSONDecodeError as e:
-                    raise Connection.CannotReceive(e)
-                else:
                     return CharMessage.from_object(d)
+                except json.JSONDecodeError as e:
+                    raise CharMessage.CannotParse(line, e)

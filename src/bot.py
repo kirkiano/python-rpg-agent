@@ -1,11 +1,14 @@
-
 import logging
+import traceback
 
 from exn import RPGException
 from server.connection import Connection  # noqa: F401
 from message import Welcome, GameOver
 from action import Action
 from request import Say, TakeExit
+
+
+logger = logging.getLogger('bot')
 
 
 class Bot(object):
@@ -45,15 +48,15 @@ class Bot(object):
             action (Action): the bot's action
         """
         super(Bot, self).__init__()
+        connection.username = name
         self._conn = connection
         self._action = action
-        self._name = name
         self._place = None
         self._exits = []
 
     @property
     def name(self):
-        return self._name
+        return self._conn.username
 
     @property
     def place(self):
@@ -74,20 +77,20 @@ class Bot(object):
             while True:
                 await self._action(self)
         except GameOver as e:
-            logging.info(f'{self.name} detected game-over: {e}')
+            logger.info(f'{self.name} detected game-over: {e}')
 
     async def run_safely(self):
         """
         Safety wrapper for run(). Ensures that a crashing bot does not also
         crash the whole program.
         """
-        logging.info(f'{self.name} now running')
+        logger.info(f'{self.name} is now running')
         try:
             await self.run()
-        except RPGException as e:
-            logging.fatal(f'{self.name} failed: {e}')
         except Exception as e:  # for safety, catch all exceptions
-            logging.fatal(f'{self.name} crashed: {e}')
+            verb = 'failed' if isinstance(e, RPGException) else 'crashed'
+            logger.fatal(f'{self.name} {verb}: {e}')
+            traceback.print_exception(e)
 
     #######################################################
     # requests

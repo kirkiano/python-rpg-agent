@@ -8,6 +8,9 @@ from .confine import Confine
 from message import Place, WaysOut
 
 
+logger = logging.getLogger('roam')
+
+
 class RoamingAction(Action):
     """
     Action that lets a bot roam
@@ -39,7 +42,7 @@ class RoamingAction(Action):
             bot (Bot):
         """
         bot.place = (await bot.wait_for(Place)).place
-        logging.info(f'{bot.name} is now in {bot.place}')
+        logger.info(f'{bot.name} is now in {bot.place}')
         self.confine.assert_within_bounds(bot.place)
         bot.exits = (await bot.wait_for(WaysOut)).exits
         await self.action(bot)
@@ -52,10 +55,12 @@ class RoamingAction(Action):
         Leave the current place by an exit chosen at random, as long as
         the exit satisfies is_good_exit.
         """
-        valid_exit_ids = [e.id for e in bot.exits
-                          if self.confine.is_valid_exit(e)]
-        if valid_exit_ids:
-            chosen_exit = random.choice(valid_exit_ids)
-            await bot.take_exit(chosen_exit)
+        valid_exits = [e for e in bot.exits if self.confine.is_valid_exit(e)]
+        valid_exit = random.choices(valid_exits)
+        if valid_exit:
+            valid_exit = valid_exit[0]  # shadow!
+            logger.debug(f'{bot.name} going {valid_exit.direction} '
+                         f'to {valid_exit.neighbor}')
+            await bot.take_exit(valid_exit.id)
         else:
             raise RoamingAction.NoValidExit(bot.place)

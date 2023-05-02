@@ -1,5 +1,4 @@
 from abc import ABCMeta, abstractmethod
-import logging
 
 from message import GameOver, Ping
 from request import Login, Pong
@@ -84,7 +83,6 @@ class Connection(object):
         """
         while True:
             msg = await self.recv_message()
-            logging.debug(f'{self.username} received {msg}')
             if isinstance(msg, Ping):
                 await self.send_request(Pong())
             else:

@@ -1,9 +1,12 @@
-
+import logging
 from unittest import IsolatedAsyncioTestCase
 from unittest.mock import AsyncMock
 
 from exn import RPGException
 from action import Action
+
+
+logger = logging.getLogger('speech')
 
 
 class BlabbingAction(Action):
@@ -42,6 +45,7 @@ class BlabbingAction(Action):
                 self.no_more = True  # raise BlabbingAction.NoMoreSayings()
                 return
         saying = self.sayings.pop().strip()
+        logger.info(f'{bot.name} says, "{saying}"')
         await bot.say(saying)
 
 

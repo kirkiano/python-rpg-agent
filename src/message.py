@@ -1,5 +1,4 @@
 from abc import abstractmethod
-import logging
 
 from exn import RPGException
 from model import Char, Exit, NonverbalExpression, Place as PlaceModel, Thing
@@ -8,23 +7,24 @@ from model import Char, Exit, NonverbalExpression, Place as PlaceModel, Thing
 class CharMessage(object):
 
     class CannotParse(RPGException):
-        def __init__(self, jsn, reason):
-            self.jsn = jsn
+        def __init__(self, data, reason):
+            """
+            Args:
+                data (str or JSON):
+                reason (str or Exception):
+            """
+            self.data = data
             self.reason = reason
             rsn = reason if isinstance(reason, str) else str(reason)
-            msg = f'Cannot parse {jsn} into a CharMessage: {rsn}'
-            super(CharMessage.CannotParse, self).__init__(msg)
-
-    class NoExits(CannotParse):
-        def __init__(self, jsn):
-            super().__init__(jsn, "no exits")
+            msg = f"Cannot parse '{data}' into a CharMessage: {rsn}"
+            super().__init__(msg)
 
     @staticmethod
     def from_object(j):
         try:
             return CharMessage._parse_dict(j)
         except KeyError as e:
-            logging.warning(f'Ignoring unparseable dict {j} ({e}).')
+            raise CharMessage.CannotParse(j, e)
 
     @staticmethod
     def _parse_dict(j):
@@ -94,11 +94,7 @@ class WaysOut(CharMessage):
 
     @staticmethod
     def from_object(j):
-        exits = j['exits']
-        if not exits:
-            raise CharMessage.NoExits(j)
-        else:
-            return WaysOut([Exit.from_object(e) for e in exits])
+        return WaysOut([Exit.from_object(e) for e in j['exits']])
 
     def __str__(self):
         return (f'Your ways out are: {" || ".join(map(str, self.exits))}'

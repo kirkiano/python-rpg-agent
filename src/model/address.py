@@ -46,8 +46,8 @@ class Address(RPGObject):
         return self._number
 
     def __str__(self):
-        return (f'{self.name}, {self.street_number} {self.street_name}, ' +
-                f'{self.city}, {self.country} (address {self.id})')
+        return (f'{self.country}, {self.city}, {self.street_name} '
+                f'#{self.street_number}, {self.name} (address {self.id})')
 
     def __eq__(self, other):
         return self.id == other.id and \

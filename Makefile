@@ -9,9 +9,6 @@ export $(shell sed 's/=.*//' .env)
 run:
 	python src/main.py $(PORT) $(BOTFILE) --waitleave $(WAITLEAVE)
 
-debug:
-	python src/main.py $(PORT) $(BOTFILE) --waitleave $(WAITLEAVE) -v
-
 # linter, but decommenting "--application-importnames" below throws false
 # positives about import order (I201 errors, etc).
 # For more discussion see https://stackoverflow.com/a/47236498.
