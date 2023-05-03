@@ -7,7 +7,9 @@ export $(shell sed 's/=.*//' .env)
 
 
 run:
-	python src/main.py $(PORT) $(BOTFILE) --waitleave $(WAITLEAVE)
+	python src/main.py $(PORT) $(BOTFILE) \
+		--waitleave $(WAITLEAVE) \
+		--wait-between-reconnects $(WAIT_BETWEEN_RECONNECTS)
 
 # linter, but decommenting "--application-importnames" below throws false
 # positives about import order (I201 errors, etc).

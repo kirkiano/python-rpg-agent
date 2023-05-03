@@ -1,6 +1,6 @@
 import asyncio
-from collections import namedtuple
 
+from .address import Address
 from .base import Server
 from .connection import TCPConnection
 
@@ -10,9 +10,11 @@ class TCPServer(Server):
     Class representing a server that accepts TCP connections
     """
 
-    Address = namedtuple('ServerAddress', 'host, port')
-
     def __init__(self, address):
+        """
+        Args:
+            address (Address):
+        """
         self._address = address
 
     def __str__(self):

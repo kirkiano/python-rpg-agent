@@ -31,6 +31,8 @@ The following environment variables are sought for in `.env`; see `.envs/sample`
 * `BOTFILE`: path to the bot file. Information about its expected format is
   shown by running `python src/main.py -h`.
 * `WAITLEAVE`: maximum number of seconds a bot will wait before moving
+* `WAIT_BETWEEN_RECONNECTS`: number of seconds to wait before trying again to
+  connect to the server
 * `LOG_LEVEL_TOP` (optional; default `INFO`): threshold for logging top-level events
 * `LOG_LEVEL_BOT` (optional; default `INFO`): threshold for logging top-level events within a bot
 * `LOG_LEVEL_ROAM` (optional; default `INFO`): threshold for logging a bot's motion

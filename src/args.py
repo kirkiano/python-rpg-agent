@@ -1,6 +1,6 @@
 import argparse
 
-from server import TCPServer
+import server
 
 
 def parse_args():
@@ -39,15 +39,20 @@ def parse_args():
         metavar='WAITLEAVE',
         type=int,
         default=120,
-        help='Maximum number of seconds a bot should wait before leaving a room'
+        help=('Maximum number of seconds a bot '
+              'should wait before leaving a room')
     )
     parser.add_argument(
-        '--waitdl',
-        metavar='WAITDL',
+        '--wait-between-reconnects',
+        metavar='WAITBETRECONN',
         type=int,
-        default=120,
-        help='Maxmum number of minutes a bot should wait before redownloading its content'
+        default=10,
+        help=('Number of seconds to wait before '
+              'trying again to connect to the server')
     )
     args = parser.parse_args()
-    server_address = TCPServer.Address(args.host, args.port)
-    return server_address, args.botfile, args.waitleave
+    server_address = server.Address(args.host, args.port)
+    return server_address,\
+        args.botfile,\
+        args.waitleave,\
+        args.wait_between_reconnects

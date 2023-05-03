@@ -5,25 +5,24 @@ from exn import RPGException
 from bot import Bot
 from scrape import scrapers
 from action import RoamingAction, ConfineToAddress, BlabbingAction
-from util import keep_trying
 
 
-async def get_scraping_bot_tasks(server, botfile, waitleave, logger):
+async def get_scraping_bot_tasks(connect, botfile, waitleave):
     """
     Construct the scraping bots stipulated in a given botfile.
     See :module:`bot.parse` for format of botfiles.
 
     Args:
-        server (:obj:`Server`):
+        connect (func): async function that takes a username connects
+                        to the server
         botfile (str): path to the botfile
         waitleave (int): number of seconds to wait before moving
-        logger (Logger):
 
     Returns:
         :obj:`list` of :obj:`ScrapingBot`s' main tasks
     """
     async def make_bot(username, password, game_address):
-        conn = await keep_trying(server.connect, 2, f'connect to {server}', logger)
+        conn = await connect(username)
         await conn.login(username, password)
         scraper = getattr(scrapers, 'scrape_' + username)
         blab_headlines = BlabbingAction(scraper)
