@@ -13,24 +13,25 @@ async def get_scraping_bot_tasks(connect, botfile, waitleave):
     See :module:`bot.parse` for format of botfiles.
 
     Args:
-        connect (func): async function that takes a username connects
-                        to the server
+        connect (func): async function that takes a username and returns
+                        an AutoPongConnection to the server
         botfile (str): path to the botfile
         waitleave (int): number of seconds to wait before moving
 
     Returns:
-        :obj:`list` of :obj:`ScrapingBot`s' main tasks
+        :obj:`list` of pairs of :obj:`ScrapingBot`s' and their
+        respective connections
     """
     async def make_bot(username, password, game_address):
         conn = await connect(username)
+        pong_task = asyncio.create_task(conn.enqueue_non_ping_messages())
         await conn.login(username, password)
         scraper = getattr(scrapers, 'scrape_' + username)
         blab_headlines = BlabbingAction(scraper)
         confine = ConfineToAddress(game_address)
         roam = RoamingAction(waitleave, blab_headlines, confine)
         bot = await Bot.create(conn, roam)
-        bot_task = asyncio.create_task(bot.run_safely())
-        return bot_task
+        return bot, pong_task
 
     with open(botfile, 'r') as f:
         bot_lines = f.readlines()

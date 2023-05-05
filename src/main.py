@@ -9,12 +9,18 @@ from server import TCPServer
 
 
 logger = logging.getLogger('top')
+logger.propagate = False
 
 
 async def main(server_address,
                botfile,
                waitleave,
                wait_between_reconnect_attempts):
+    logger.info(f'Botfile is {botfile}')
+    logger.info(f'Server address is {server_address}')
+    logger.info(f'Will wait {wait_between_reconnect_attempts} seconds '
+                'before trying to connect again to server')
+    logger.info(f'Bots will wait at most {waitleave} seconds before moving')
     server = TCPServer(server_address)
 
     async def connect(username, srv=server, log=logger):
@@ -22,8 +28,11 @@ async def main(server_address,
                                  wait_between_reconnect_attempts,
                                  f'connect {username} to {srv}',
                                  log)
-    tasks = await get_scraping_bot_tasks(connect, botfile, waitleave)
-    logger.info(f'Running {len(tasks)} tasks')
+    pairs = await get_scraping_bot_tasks(connect, botfile, waitleave)
+    task_pairs = [(asyncio.create_task(bot.run_safely()), pong_task) for
+                  (bot, pong_task) in pairs]
+    logger.info(f'Running {len(task_pairs)} pairs of tasks')
+    tasks = [task for task_pair in task_pairs for task in task_pair]
     await asyncio.gather(*tasks)
 
 

@@ -9,6 +9,7 @@ from request import Say, TakeExit
 
 
 logger = logging.getLogger('bot')
+logger.propagate = False
 
 
 class Bot(object):

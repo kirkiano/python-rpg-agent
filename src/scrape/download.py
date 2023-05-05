@@ -12,8 +12,8 @@ async def download_web_page(url):
         bytes: the body of the HTTP response
     """
     headers = {
-        #'User-Agent': ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:55.0)'
-        #               ' Gecko/20100101 Firefox/55.0'),
+        # 'User-Agent': ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:55.0)'
+        #                ' Gecko/20100101 Firefox/55.0'),
         'User-Agent': ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) '
                        'AppleWebKit/537.36 (KHTML, like Gecko) '
                        'Chrome/112.0.0.0 Safari/537.36'),

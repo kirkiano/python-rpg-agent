@@ -9,6 +9,7 @@ from message import Place, WaysOut
 
 
 logger = logging.getLogger('roam')
+logger.propagate = False
 
 
 class RoamingAction(Action):

@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
 
-from message import GameOver, Ping
-from request import Login, Pong
+from message import GameOver
+from request import Login
 from exn import RPGException
 
 
@@ -74,20 +74,6 @@ class Connection(object):
         # Used by self.handle_next_message. Not meant to be used by clients.
         raise NotImplementedError('Server.recv_message not implemented')
 
-    async def recv_non_ping_message(self):
-        """
-        Convenience that filters out incoming Pings, by responding
-        to them with Pongs.
-        Returns:
-            CharMessage
-        """
-        while True:
-            msg = await self.recv_message()
-            if isinstance(msg, Ping):
-                await self.send_request(Pong())
-            else:
-                return msg
-
     async def login(self, username, password):
         """
         Args:
@@ -108,14 +94,14 @@ class Connection(object):
         If GameOver is received, then raise it as an Exception
 
         Args:
-            cls (type): a subclass of CharMessage that is not Ping. This
+            cls (type): a subclass of CharMessage. This
                         is the type of message to return, if received.
 
         Returns:
             CharMessage
         """
         while True:
-            msg = await self.recv_non_ping_message()
+            msg = await self.recv_message()
             if isinstance(msg, GameOver):
                 raise msg
             elif isinstance(msg, cls):

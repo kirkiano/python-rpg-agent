@@ -2,13 +2,14 @@ import json
 import logging
 
 from message import CharMessage, Ping
-from .base import Connection
+from .auto_pong import Connection, AutoPongConnection
 
 
-logger = logging.getLogger('TCP')
+logger = logging.getLogger('tcp')
+logger.propagate = False
 
 
-class TCPConnection(Connection):
+class TCPConnection(AutoPongConnection):
     """Object representing a connection to the RPG server."""
 
     def __init__(self, address, reader, writer):
@@ -41,6 +42,11 @@ class TCPConnection(Connection):
         bs = await self.reader.readline()
         logger.debug(f'{self.username} received: {bs}')
         if not bs:  # empty byte string
+            # Since the Python docs for readline
+            # (https://docs.python.org/3/library/asyncio-stream.html#asyncio.StreamReader.readline)
+            # are a little ambiguous, it may help to note that
+            # https://stackoverflow.com/a/35210204 confirms that
+            # empty bytes means EOF.
             raise Connection.EOF()
         try:
             line = bs.decode('utf-8')

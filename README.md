@@ -8,6 +8,7 @@ repo](https://github.com/kirkiano/rpg-docker).
 
 This repo provides the bots that scrape headlines or titles from various
 periodicals and announces them in specific addresses in the RPG.
+It uses Python version 3.11.3.
 
 ## Execution
 

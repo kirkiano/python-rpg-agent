@@ -1,5 +1,4 @@
 import asyncio
-import logging
 
 
 async def keep_trying(f, wait_secs, desc, logger):
