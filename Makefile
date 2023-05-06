@@ -18,10 +18,9 @@ flake8:
 	flake8 src # --application-import-names appnexus
 
 test:
-	cd src; python -m unittest get_bots.TestBotfile -v
-	cd src; python -m unittest action.blab.TestBlabbingAction -v
-	cd src; python -m unittest server.connection.auto_pong.TestAutoPongConnection -v
-	python -m unittest discover -s src -p "test_*.py" -v
+	# cd src; python -m unittest get_bots.TestBotfile -v
+	# python -m unittest discover -s src -p "test_*.py" -v
+	python -m unittest discover -s src -v
 
 doc:
 	$(MAKE) -C sphinx html

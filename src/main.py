@@ -4,7 +4,7 @@ import asyncio
 from log import init_logs
 from args import parse_args
 from util import keep_trying
-from get_bots import get_scraping_bot_tasks
+from bot.get_bots import get_scraping_bot_tasks
 from server import TCPServer
 
 

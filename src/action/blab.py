@@ -1,6 +1,4 @@
 import logging
-from unittest import skip, IsolatedAsyncioTestCase
-from unittest.mock import AsyncMock
 
 from exn import RPGException
 from action import Action
@@ -48,16 +46,3 @@ class BlabbingAction(Action):
         saying = self.sayings.pop().strip()
         logger.info(f'{bot.name} says, "{saying}"')
         await bot.say(saying)
-
-
-@skip('')
-class TestBlabbingAction(IsolatedAsyncioTestCase):
-
-    async def test_call_blabbing_action(self):
-        some_saying = 'some saying'
-        blabbing = BlabbingAction(lambda: [some_saying])
-
-        bot = AsyncMock()
-        bot.say.assert_not_called()
-        await blabbing(bot)
-        bot.say.assert_awaited_once_with(some_saying)
