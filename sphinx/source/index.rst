@@ -10,10 +10,10 @@ Welcome to RPG Periodical Scrapers's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-.. automodule:: rpg_periodical_scraper.bot
+.. automodule:: bot
    :members:
 
-.. automodule:: rpg_periodical_scraper.main
+.. automodule:: main
    :members:
 
 Indices and tables
