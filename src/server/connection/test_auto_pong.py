@@ -57,6 +57,10 @@ class TestAutoPongConnection(unittest.IsolatedAsyncioTestCase):
                   'recv_message',
                   Mock(side_effect=Connection.EOF))
     async def test_expire_enqueue_on_eof(self):
+        """
+        Verify that an EOF kills the enqueue task of
+        an AutoPongConnection.
+        """
         _, task = MockAutoPongConnection.create()
         self.assertFalse(task.done())
         await asyncio.sleep(1)
@@ -66,6 +70,10 @@ class TestAutoPongConnection(unittest.IsolatedAsyncioTestCase):
                   'recv_message',
                   Mock(side_effect=Connection.EOF))
     async def test_eof_raised_through(self):
+        """
+        Verify that an EOF is transferred to the main task of
+        an AutoPongConnection.
+        """
         conn, _ = MockAutoPongConnection.create()
         with self.assertRaises(Connection.EOF):
             await conn.recv_non_ping_message()

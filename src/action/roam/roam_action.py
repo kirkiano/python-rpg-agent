@@ -4,7 +4,7 @@ import asyncio
 
 from exn import RPGException
 from action import Action
-from .confine import Confine
+from .confine import NoConfinement
 from message import Place, WaysOut
 
 
@@ -25,7 +25,7 @@ class RoamingAction(Action):
             """
             super().__init__(f'no valid exit available from {place}')
 
-    def __init__(self, waitleave, action=Action(), confine=Confine()):
+    def __init__(self, waitleave, action=Action(), confine=NoConfinement()):
         """
         Args:
             waitleave (int): maximum number of seconds to wait before

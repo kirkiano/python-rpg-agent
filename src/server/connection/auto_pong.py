@@ -9,10 +9,13 @@ from .base import Connection
 class AutoPongConnection(Connection):
     """
     Abstract class that responds automatically to pings.
-    To achieve this, method enqueue_non_ping_message should
-    be run as a separate task. Client code, including subclasses,
-    should *not* call recv_message, and should receive messages
-    by calling recv_non_ping_message instead.
+    To achieve this, the static constructor 'create' runs
+    an 'enqueue' task (method enqueue_non_ping_message)
+    in the background. This task receives messages,
+    returns Pongs, and enqueues non-Pongs for later reception by
+    recv_non_ping_message. The latter is the only method that client
+    code, including subclasses, should use to receive non-ping
+    messages.
 
     The superclass's wait_for is appropriately overriden.
     """
@@ -21,6 +24,11 @@ class AutoPongConnection(Connection):
 
     @staticmethod
     def create():
+        """
+        This static method is the ordinary way to instantiate an
+        AutoPongConnection. It launches and returns the enqueue task
+        along with the connection itself.
+        """
         conn = AutoPongConnection()
         task = asyncio.create_task(conn.enqueue_non_ping_messages())
         return conn, task
@@ -88,7 +96,8 @@ class AutoPongConnection(Connection):
     @abstractmethod
     async def recv_message(self):
         """
-        Get the next CharMessage from the server.
+        Get the next CharMessage from the server. Not to be used by
+        client code.
 
         Returns:
             CharMessage

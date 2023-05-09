@@ -1,11 +1,15 @@
+from abc import ABCMeta, abstractmethod
 
 from exn import RPGException
 
 
 class Confine(object):
     """
-    Callable indicating whether a location is within bounds
+    Abstract class specifying whether and how something should be confined
+    to a certain region of the RPG's world
     """
+
+    __metaclass__ = ABCMeta
 
     class OutOfBounds(RPGException):
         def __init__(self, place):
@@ -15,18 +19,17 @@ class Confine(object):
             """
             super().__init__(f'out of bounds: {place}')
 
+    @abstractmethod
     def is_within_bounds(self, _place):
         """
         Indicates whether the given place is within bounds.
-        This method is meant to be overridden by subclasses.
-        In this base class it returns True.
 
         Args:
             _place (Place): the place to test
         Returns:
             bool
         """
-        return True
+        raise NotImplementedError('Confine.is_within_bounds is not implemented')
 
     def assert_within_bounds(self, place):
         """
@@ -47,6 +50,11 @@ class Confine(object):
             bool
         """
         return self.is_within_bounds(egress.neighbor)
+
+
+class NoConfinement(Confine):
+    def is_within_bounds(self, _place):
+        return True
 
 
 class ConfineToAddress(Confine):
