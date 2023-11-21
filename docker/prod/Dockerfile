@@ -17,6 +17,6 @@ RUN pip install --upgrade pip
 COPY ./requirements/prod.txt requirements/prod.txt
 RUN pip install -r requirements/prod.txt
 
-CMD python src/main.py $PORT $BOTFILE --host $HOST \
+CMD python src/main.py $PORT /usr/src/botfile --host $HOST \
         --waitleave $WAITLEAVE \
         --wait-between-reconnects $WAIT_BETWEEN_RECONNECTS

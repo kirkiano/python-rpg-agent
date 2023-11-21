@@ -8,7 +8,7 @@ repo](https://github.com/kirkiano/rpg-docker).
 
 This repo provides the bots that scrape headlines or titles from various
 periodicals and announces them in specific addresses in the RPG.
-It uses Python version 3.11.3.
+Python version: 3.11.3.
 
 ## Execution
 
@@ -25,8 +25,8 @@ pip install -r requirements/dev.txt
 
 ### Environment variables
 
-The following environment variables are sought for in `.env`; see `.envs/sample`.
-(See `Makefile` for how they are passed on the command line.)
+The Makefile searches `.env` for the following environment variables,
+some of which are passed as command-line arguments to the executable:
 * `HOST`: hostname of the server (*ie*, the auth driver)
 * `PORT`: port number on which the server (auth driver) listens for TCP connections
 * `BOTFILE`: path to the bot file. Information about its expected format is
@@ -40,19 +40,13 @@ The following environment variables are sought for in `.env`; see `.envs/sample`
 * `LOG_LEVEL_SPEECH` (optional; default `WARNING`): threshold for logging a bot's speech
 * `LOG_LEVEL_TCP` (optiona; default `WARNING`): threshold for logging bytes sent and received
 
-A log level should be one of `DEBUG`, `INFO`, `WARNING`, `ERROR`,
-or `CRITICAL`.
-
+A log level should be one of `DEBUG`, `INFO`, `WARNING`, `ERROR`, or `CRITICAL`.
 
 ### Invocation
 
-After activating the virtualenv and setting env vars in `.env`, enter `make run`.
-Command-line arguments are explained by running `python src/main.py -h`.
-
-Note that `waitleave`, the maximum time a bot will wait before moving,
-should be set long enough to give the asynchronous tasks time to respond
-to the server's pings, otherwise the server will time the connection out.
-(That timeout too should be set long enough.)
+Activate the virtualenv, set the above env vars in `.env`, and
+enter `make run`. Command-line arguments are explained by running
+`python src/main.py -h`.
 
 ## Testing
 

@@ -1,4 +1,3 @@
 * After it enters a room, make a bot wait a couple of seconds before
   announcing the next title. This gives other characters time to follow
   the bot around and hear all its titles.
-* Consider using Python __all__ where "from X import *" is used
