@@ -4,6 +4,9 @@ import server
 
 
 def parse_args():
+    """
+    Parse command-line arguments
+    """
     botfile_help = (
         'Text file in which each line specifies the name of a desired bot,'
         ' its password, and the RPG address to which it'
@@ -52,7 +55,7 @@ def parse_args():
     )
     args = parser.parse_args()
     server_address = server.Address(args.host, args.port)
-    return server_address,\
-        args.botfile,\
-        args.waitleave,\
+    return server_address, \
+        args.botfile, \
+        args.waitleave, \
         args.wait_between_reconnects
