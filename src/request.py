@@ -1,19 +1,13 @@
 from abc import ABCMeta, abstractmethod
 
-from exn import RPGException
-
 
 class Login(object):
-    """
-    A convenience for authenticating. Notes:
-        1. Untagged, because not a real request to the engine
-        2. The 'details' flag is to be understood implicitly as True.
-    """
+    """A convenience for authenticating."""
+
     def __init__(self, username, password):
         """
-        Args:
-            username (str)
-            password (str)
+        :param str username:
+        :param str password:
         """
         self.username = username
         self.password = password
@@ -33,12 +27,8 @@ class Login(object):
 # char requests
 
 class CharRequest(object):
+    """Abstract base class of character requests"""
     __metaclass__ = ABCMeta
-
-    class Unrecognized(RPGException):
-        def __init__(self, cid, obj):
-            msg = f'Char {cid} make unrecognizable request: {obj}'
-            super().__init__(msg)
 
     def __str__(self):
         return f'{self.__dict__}'
@@ -53,10 +43,10 @@ class CharRequest(object):
 
 
 class TakeExit(CharRequest):
+    """Request to move to an adjecent place"""
     def __init__(self, exit_id):
         """
-        Args:
-            exit_id (int):
+        :param int exit_id:
         """
         self.exit_id = exit_id
 
@@ -71,10 +61,10 @@ class TakeExit(CharRequest):
 
 
 class Say(CharRequest):
+    """Request to say something"""
     def __init__(self, speech):
         """
-        Args:
-            speech (str):
+        :param str speech: the speech to say
         """
         self.speech = speech
 
@@ -89,7 +79,7 @@ class Say(CharRequest):
 
 
 class Pong(CharRequest):
-
+    """Response to a ping from the server"""
     def __eq__(self, other):
         return isinstance(other, Pong)
 
@@ -98,68 +88,3 @@ class Pong(CharRequest):
 
     def to_dict(self):
         return dict(tag='Pong')
-
-
-###########################################################
-# the stuff below is not needed
-
-# class WhoAmI(CharRequest):
-#
-#     def to_dict(self):
-#         return dict(tag='WhoAmI')
-
-
-# class WhereAmI(CharRequest):
-#
-#     def to_dict(self):
-#         return dict(tag='WhereAmI')
-
-
-# class WhatIsHere(CharRequest):
-#
-#     def to_dict(self):
-#         return dict(tag='WhatIsHere')
-
-
-# class HowCanIExit(CharRequest):
-#
-#     def to_dict(self):
-#         return dict(tag='HowCanIExit')
-
-
-# class EditMe(CharRequest):
-#     def __init__(self, new_description):
-#         """
-#         Args:
-#             new_description (int):
-#         """
-#         self.new_description = new_description
-#
-#     def to_dict(self):
-#         return dict(tag='EditMe', contents=self.new_description)
-#
-#
-# class DescribeThing(CharRequest):
-#     def __init__(self, thing_id):
-#         """
-#         Args:
-#             thing_id (int):
-#         """
-#         self.thing_id = thing_id
-#
-#     def to_dict(self):
-#         return dict(tag='DescribeThing', contents=self.thing_id)
-#
-#
-# class Whisper(CharRequest):
-#     def __init__(self, speech, to_id):
-#         """
-#         Args:
-#             speech (str):
-#             to_id (int): thing_id of character whispered to
-#         """
-#         self.speech = speech
-#         self.to_id = to_id
-#
-#     def to_dict(self):
-#         return dict(tag='Whisper', contents=[self.speech, self.to_id])
