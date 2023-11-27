@@ -59,3 +59,11 @@ def parse_args():
         args.botfile, \
         args.waitleave, \
         args.wait_between_reconnects
+
+
+def log_args(logger, server_address, botfile, waitleave, wait_reconnect):
+    logger.info(f'Server address is {server_address}')
+    logger.info(f'Botfile is {botfile}')
+    logger.info(f'Will wait {wait_reconnect} seconds '
+                'before trying to connect again to server')
+    logger.info(f'Bots will wait at most {waitleave} seconds before moving')
