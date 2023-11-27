@@ -3,18 +3,18 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to RPG Periodical Scrapers's documentation!
-===================================================
+RPG Periodical Scrapers
+=======================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Contents:
 
-.. automodule:: bot
-   :members:
+   comm
+   exn
 
-.. automodule:: main
-   :members:
+The top-level README gives instructions for execution.
+
 
 Indices and tables
 ==================
