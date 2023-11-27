@@ -3,6 +3,13 @@ import asyncio
 
 async def keep_trying(f, wait_secs, desc, logger):
     """
+    :param func f: a thunk executing the computation to keep attempting
+    :param int wait_secs: number of seconds to wait before retrying
+    :param str desc: grammatical predicate describing f (eg, "connect to db")
+    :param Logger logger: a logger to log to
+    :return: whatever f returns
+    """
+    """
     Keep trying to invoke f until it succeeds, ie, until it doesn't throw an
     exception.
 

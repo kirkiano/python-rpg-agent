@@ -10,10 +10,12 @@ RPG Periodical Scrapers
    :maxdepth: 1
    :caption: Contents:
 
+   server/index
    comm
    exn
+   util
 
-The top-level README gives instructions for execution.
+This repo's top-level README gives instructions for execution.
 
 
 Indices and tables
