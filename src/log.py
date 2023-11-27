@@ -8,6 +8,7 @@ import os
 
 
 def init_logs():
+    """Initialize logging"""
     # the 'upper' is recommended at
     # https://docs.python.org/3/howto/logging.html#logging-to-a-file
     log_level = {
