@@ -38,7 +38,7 @@ class CharRequest(object):
     class Unrecognized(RPGException):
         def __init__(self, cid, obj):
             msg = f'Char {cid} make unrecognizable request: {obj}'
-            super(CharRequest.Unrecognized, self).__init__(msg)
+            super().__init__(msg)
 
     def __str__(self):
         return f'{self.__dict__}'

@@ -13,7 +13,7 @@ class TCPConnection(AutoPongConnection):
     """Object representing a connection to the RPG server."""
 
     def __init__(self, address, reader, writer):
-        super(TCPConnection, self).__init__()
+        super().__init__()
         self._address = address
         self.reader = reader
         self.writer = writer

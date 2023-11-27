@@ -12,7 +12,7 @@ class Exit(RPGObject):
             port (str): the (conceptual) portal
             nbr (Place): the neighboring place, to which this exit leads
         """
-        super(Exit, self).__init__(eid)
+        super().__init__(eid)
         self._dir = dxn
         self._nbr = nbr
         self._port = port

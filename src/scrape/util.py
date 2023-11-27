@@ -2,7 +2,7 @@
 class CannotFind(Exception):
     def __init__(self, args, dargs):
         msg = f'Nothing found by {args} and {dargs}'
-        super(CannotFind, self).__init__(msg)
+        super().__init__(msg)
 
 
 def find(soup, *args, **dargs):

@@ -13,13 +13,13 @@ from .download import download_web_page
 class CannotParseHTML(Exception):
     def __init__(self, exn):
         msg = f'Cannot parse HTML: {exn}'
-        super(CannotParseHTML, self).__init__(msg)
+        super().__init__(msg)
 
 
 class CannotExtract(Exception):
     def __init__(self, exn):
         msg = f'Parsed successfully but could not extract, because: {exn}'
-        super(CannotExtract, self).__init__(msg)
+        super().__init__(msg)
 
 
 def _scraper(url, parse):

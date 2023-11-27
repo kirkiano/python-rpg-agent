@@ -41,7 +41,7 @@ async def get_scraping_bot_tasks(connect, botfile, waitleave):
 class MalformedBotfile(RPGException):
     def __init__(self, line):
         msg = f'botfile malformed at "{line}"'
-        super(RPGException, self).__init__(msg)
+        super().__init__(msg)
 
 
 def parse_botline(line):

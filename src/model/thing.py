@@ -3,7 +3,7 @@ from .object import RPGObject
 
 class Thing(RPGObject):
     def __init__(self, idn, name, serial_number):
-        super(Thing, self).__init__(idn)
+        super().__init__(idn)
         self.name = name
         self.serial_number = serial_number
 

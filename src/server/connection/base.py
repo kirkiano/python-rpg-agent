@@ -18,7 +18,7 @@ class Connection(object):
         """
         def __init__(self, exn):
             msg = f'Cannot receive: {exn}'
-            super(Connection.CannotReceive, self).__init__(msg)
+            super().__init__(msg)
 
     class NotUnicode(RPGException):
         """
@@ -30,14 +30,14 @@ class Connection(object):
                 bs (bytes): the sequence of bytes that fails to be Unicode
             """
             msg = f'Not Unicode: {bs}'
-            super(Connection.NotUnicode, self).__init__(msg)
+            super().__init__(msg)
 
     class EOF(RPGException):
         """
         Connection closed
         """
         def __init__(self):
-            super(Connection.EOF, self).__init__('EOF')
+            super().__init__('EOF')
 
     def __init__(self):
         self.username = None

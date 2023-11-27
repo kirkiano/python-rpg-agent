@@ -11,7 +11,7 @@ class Address(RPGObject):
             city (str):
             country (str):
         """
-        super(Address, self).__init__(idn)
+        super().__init__(idn)
         self.name = name
         self._number = street_number
         self._street = street_name

@@ -3,7 +3,7 @@ from .object import RPGObject
 
 class Char(RPGObject):
     def __init__(self, cid, name, logged_in):
-        super(Char, self).__init__(cid)
+        super().__init__(cid)
         self.name = name
         self.logged_in = logged_in
 

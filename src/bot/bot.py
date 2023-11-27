@@ -48,7 +48,7 @@ class Bot(object):
             name (str):
             action (Action): the bot's action
         """
-        super(Bot, self).__init__()
+        super().__init__()
         connection.username = name
         self._conn = connection
         self._action = action
