@@ -1,22 +1,16 @@
-# Periodical scrapers
-
-*Note: this demo project aims more to add features than to achieve
-test coverage.*
+# RPG periodical scrapers
 
 General documentation for the RPG can be found in the [master
 repo](https://github.com/kirkiano/rpg-docker).
 
-This repo provides the bots that scrape headlines or titles from various
-periodicals and announces them in specific addresses in the RPG.
-Python version: 3.11.3.
+This repo provides the bots that scrape titles from various
+periodicals and announces them in certain addresses in the RPG.
+Python version 3.11.3.
 
 ## Execution
 
 ### Virtual environment
 
-Activate the appropriate virtualenv: `workon <venv>`.
-
-To create a new one:
 ```
 python -m venv <path/to/venv>
 workon <venv>
@@ -58,6 +52,10 @@ enter `make run`. Command-line arguments are explained by running
 cd docker/prod
 make
 ```
+
+## Docs
+
+Run `make doc` then navigate to `sphinx/build/html/index.html`.
 
 ## TODO
 
