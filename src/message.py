@@ -287,6 +287,24 @@ class Expressed(CharMessage):
         return f'Char {self.by} {self.nve.past_tense()} at char {self.to}'
 
 
+class Health(CharMessage):
+    """
+    Your health level has changed.
+    """
+    def __init__(self, value):
+        """
+        :param float value:
+        """
+        self.value = value
+
+    @staticmethod
+    def from_object(j):
+        return Health(j['value'])
+
+    def __str__(self):
+        return f'Your health level is now {self.value}'
+
+
 class Ping(CharMessage):
     def __str__(self):
         return 'Ping'
