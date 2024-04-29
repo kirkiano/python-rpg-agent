@@ -19,7 +19,7 @@ sys.path.insert(0, os.path.abspath('../../src'))
 
 project = 'RPG Periodical Scrapers'
 # noinspection PyShadowingBuiltins
-copyright = '2019-2023, Kirkian O'
+copyright = '2019-2024, Kirkian O'
 author = 'Kirkian O'
 
 
