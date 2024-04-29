@@ -29,12 +29,12 @@ async def main(server_address, botfile, waitleave, wait_reconnect):
                   (bot, pong_task) in bots_and_pongs]
     logger.info(f'Running {len(task_pairs)} pairs of tasks')
     tasks = [task for task_pair in task_pairs for task in task_pair]
-    await asyncio.gather(*tasks)  # 'return' not needed
+    await asyncio.gather(*tasks)
 
 
 if __name__ == '__main__':
     init_logs()
     args = parse_args()
     log_args(logger, *args)
-    main_task = main(*args)
-    asyncio.run(main_task)
+    main_task = main(*args)  # not awaited
+    asyncio.run(main_task)  # run the future
