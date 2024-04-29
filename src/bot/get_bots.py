@@ -6,15 +6,15 @@ from scrape import scrapers
 from action import RoamingAction, ConfineToAddress, BlabbingAction
 
 
-async def get_scraping_bot_tasks(connect, botfile, waitleave):
+async def get_scraping_bot_tasks(botfile, connect, waitleave):
     """
     Construct the scraping bots stipulated in a given botfile.
     See :module:`bot.parse` for format of botfiles.
 
     Args:
+        botfile (str): path to the botfile
         connect (func): async function that takes a username and returns
                         an AutoPongConnection to the server
-        botfile (str): path to the botfile
         waitleave (int): number of seconds to wait before moving
 
     Returns:

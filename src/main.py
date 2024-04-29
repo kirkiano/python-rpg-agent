@@ -24,7 +24,7 @@ async def main(server_address, botfile, waitleave, wait_reconnect):
                                  f'connect {username} to {srv}',
                                  log)
 
-    bots_and_pongs = await get_scraping_bot_tasks(connect, botfile, waitleave)
+    bots_and_pongs = await get_scraping_bot_tasks(botfile, connect, waitleave)
     task_pairs = [(asyncio.create_task(bot.run_safely()), pong_task) for
                   (bot, pong_task) in bots_and_pongs]
     logger.info(f'Running {len(task_pairs)} pairs of tasks')
