@@ -19,7 +19,7 @@ async def get_scraping_bot_tasks(botfile, connect, waitleave):
 
     Returns:
         :obj:`list` of pairs of :obj:`ScrapingBot`s' and their
-        respective connections
+        respective pong tasks
     """
     async def make_bot(username, password, game_address):
         conn = await connect(username)
