@@ -33,13 +33,13 @@ class AutoPongConnection(Connection):
         task = asyncio.create_task(conn.enqueue_non_ping_messages())
         return conn, task
 
-    def __init__(self):
+    def __init__(self, base_cxn):
         """
         This constructor is not meant to be called by any function
         except AutoPongConnection.create.
         """
-        super().__init__()
         self._msgs = asyncio.Queue()
+        self.base_cxn = base_cxn
 
     async def enqueue_non_ping_messages(self):
         """

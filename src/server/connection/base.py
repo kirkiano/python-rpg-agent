@@ -39,12 +39,10 @@ class Connection(object):
         def __init__(self):
             super().__init__('EOF')
 
-    def __init__(self):
-        self.username = None
-
-    def __str__(self):
-        maybe_user = f"{self.username}'s" if self.username else ""
-        return f'{maybe_user}connection to {self.server}'
+    @property
+    @abstractmethod
+    def username(self):
+        raise NotImplementedError('Connection.username not implemented')
 
     @property
     @abstractmethod
@@ -52,7 +50,7 @@ class Connection(object):
         """
         Description of the server to which self is connected (a string)
         """
-        raise NotImplementedError('Server.server not implemented')
+        raise NotImplementedError('Connection.server not implemented')
 
     @abstractmethod
     async def send_request(self, request):
@@ -61,7 +59,7 @@ class Connection(object):
             request (CharRequest)
         Returns: None
         """
-        raise NotImplementedError('Server.send_request not implemented')
+        raise NotImplementedError('Connection.send_request not implemented')
 
     @abstractmethod
     async def recv_message(self):
@@ -72,7 +70,7 @@ class Connection(object):
             CharMessage
         """
         # Used by self.handle_next_message. Not meant to be used by clients.
-        raise NotImplementedError('Server.recv_message not implemented')
+        raise NotImplementedError('Connection.recv_message not implemented')
 
     async def login(self, username, password):
         """
@@ -88,7 +86,7 @@ class Connection(object):
 
     async def wait_for(self, cls):
         """
-        Keep receiving messages from the Server, until one of a given type
+        Keep receiving messages from the server, until one of a given type
         is received, in which case return it.
 
         If GameOver is received, then raise it as an Exception
