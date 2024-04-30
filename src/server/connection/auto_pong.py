@@ -58,6 +58,10 @@ class AutoPongConnection(Connection):
             await self._msgs.put(e)
 
     async def recv_non_ping_message(self):
+        """
+        Like recv_message, but does not produce Pings. (They've already
+        been filtered out by enqueue_non_ping_messages.)
+        """
         msg = await self._msgs.get()
         if isinstance(msg, Connection.EOF):
             raise msg
